@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="jumbotron">
+    <div class="row">
+        <div class="col-md-8">
+            <h1 class="display-5">Панель управления Telegram-ботом</h1>
+            <p class="lead">Система агрегации новостей Анапы и Краснодарского края</p>
+            <hr class="my-4">
+            <p>
+                Используйте этот интерфейс для управления Telegram-ботом, который доставляет актуальные новости подписчикам.
+            </p>
+            
+            <div class="mt-4">
+                <a href="{{ url_for('subscribers') }}" class="btn btn-primary me-2">
+                    <i class="fas fa-users"></i> Управление подписчиками
+                </a>
+                <a href="{{ url_for('feeds') }}" class="btn btn-info me-2">
+                    <i class="fas fa-rss"></i> Настройка источников
+                </a>
+                <a href="{{ url_for('news') }}" class="btn btn-success">
+                    <i class="fas fa-newspaper"></i> Просмотр новостей
+                </a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="bot-preview">
+                <div class="text-center mb-3">
+                    <img src="{{ url_for('static', filename='img/bot-logo.svg') }}" alt="Bot Logo" width="64" height="64">
+                    <h5 class="mt-2">Новости Анапа Pro</h5>
+                    <p class="text-muted"><small>Telegram Bot</small></p>
+                </div>
+                
+                <div class="bot-message">
+                    Добро пожаловать в бот новостей Анапы!
+                </div>
+                
+                <div class="bot-message">
+                    <i class="fas fa-newspaper"></i> Последние новости
+                </div>
+                
+                <div class="text-center mt-3">
+                    <a href="https://t.me/{{ bot_username }}" target="_blank" class="btn btn-sm btn-info">
+                        <i class="fab fa-telegram"></i> Открыть в Telegram
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="status-indicator {{ 'status-active' if settings.is_active else 'status-inactive' }}"></div>
+                <span class="fs-6">Статус бота: <strong>{{ 'Активен' if settings.is_active else 'Неактивен' }}</strong></span>
+                <div class="stats-number text-primary">
+                    {{ (subscribers|length) if subscribers is defined else '0' }}
+                </div>
+                <div class="stats-label">Активных подписчиков</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="stats-number text-info">
+                    {{ (feeds|length) if feeds is defined else '3' }}
+                </div>
+                <div class="stats-label">Источников новостей</div>
+                <div class="mt-2">
+                    Новостей на источник: <span class="badge bg-info">{{ settings.news_per_source }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="stats-number text-success">
+                    {{ settings.daily_send_time.strftime('%H:%M') if settings.daily_send_time else '08:00' }}
+                </div>
+                <div class="stats-label">Основное время отправки</div>
+                <div class="mt-2">
+                    {% if send_times and send_times|length > 0 %}
+                        <span class="badge bg-secondary">+ {{ send_times|length }} доп. времен</span>
+                    {% else %}
+                        <span class="text-muted">Нет дополнительных времен</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-newspaper"></i> Последние новости</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if news_items and news_items|length > 0 %}
+                    <div class="list-group list-group-flush">
+                        {% for item in news_items[:5] %}
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">{{ item.title }}</h5>
+                                    <small class="text-muted">{{ item.pub_date }}</small>
+                                </div>
+                                <p class="mb-1">{{ item.summary|truncate(100) }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-info">{{ item.source }}</small>
+                                    <a href="{{ item.link }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-external-link-alt"></i> Перейти
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center p-4">
+                        <i class="fas fa-inbox fa-3x mb-3 text-muted"></i>
+                        <p>Нет загруженных новостей</p>
+                        <a href="{{ url_for('fetch_news') }}" class="btn btn-primary">
+                            <i class="fas fa-sync"></i> Загрузить новости
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-footer text-end">
+                <a href="{{ url_for('news') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-list"></i> Все новости
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-clock"></i> Расписание рассылки</h5>
+            </div>
+            <div class="card-body">
+                <p>Основное время рассылки: <strong>{{ settings.daily_send_time.strftime('%H:%M') if settings.daily_send_time else '08:00' }}</strong></p>
+                
+                {% if send_times and send_times|length > 0 %}
+                    <p>Дополнительные времена рассылки:</p>
+                    <ul class="list-group">
+                        {% for time in send_times %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ time.send_time.strftime('%H:%M') }}
+                                <span class="badge bg-primary rounded-pill">активно</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">Нет настроенных дополнительных времен рассылки</p>
+                {% endif %}
+                
+                <div class="mt-3">
+                    <a href="{{ url_for('settings') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-cog"></i> Настроить расписание
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-link"></i> Быстрые ссылки</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="https://t.me/{{ bot_username }}" target="_blank" class="btn btn-info">
+                        <i class="fab fa-telegram"></i> Открыть бота в Telegram
+                    </a>
+                    
+                    <a href="{{ url_for('fetch_news') }}" class="btn btn-success">
+                        <i class="fas fa-sync"></i> Обновить новости вручную
+                    </a>
+                    
+                    <form action="{{ url_for('update_settings') }}" method="post" class="d-inline">
+                        <input type="hidden" name="is_active" value="{% if settings.is_active %}{% else %}on{% endif %}">
+                        <input type="hidden" name="news_per_source" value="{{ settings.news_per_source }}">
+                        <input type="hidden" name="daily_send_time" value="{{ settings.daily_send_time.strftime('%H:%M') if settings.daily_send_time else '08:00' }}">
+                        <button type="submit" class="btn btn-{{ 'danger' if settings.is_active else 'success' }} w-100">
+                            <i class="fas fa-power-off"></i> {{ 'Отключить бота' if settings.is_active else 'Включить бота' }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

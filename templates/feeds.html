@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-rss"></i> Источники новостей</h1>
+    
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFeedModal">
+        <i class="fas fa-plus"></i> Добавить источник
+    </button>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Список RSS-источников</h5>
+        <span class="badge bg-primary">{{ feeds|length }} источников</span>
+    </div>
+    <div class="card-body p-0">
+        {% if feeds and feeds|length > 0 %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Название</th>
+                            <th>URL</th>
+                            <th>Статус</th>
+                            <th>Дата добавления</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for feed in feeds %}
+                            <tr>
+                                <td>{{ feed.name }}</td>
+                                <td>
+                                    <a href="{{ feed.url }}" target="_blank" data-bs-toggle="tooltip" 
+                                       title="Открыть RSS-фид в новой вкладке">
+                                        {{ feed.url|truncate(50) }}
+                                    </a>
+                                </td>
+                                <td>
+                                    {% if feed.is_active %}
+                                        <span class="badge bg-success">Активен</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Неактивен</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span data-bs-toggle="tooltip" title="{{ feed.created_at }}">
+                                        {{ feed.created_at[:10] if feed.created_at else 'Неизвестно' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <form action="{{ url_for('toggle_feed', feed_id=feed.id) }}" method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-{{ 'warning' if feed.is_active else 'success' }}" data-bs-toggle="tooltip" 
+                                                    title="{{ 'Деактивировать' if feed.is_active else 'Активировать' }}">
+                                                <i class="fas fa-{{ 'pause' if feed.is_active else 'play' }}"></i>
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#editFeedModal{{ feed.id }}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <form action="{{ url_for('delete_feed', feed_id=feed.id) }}" method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-danger" data-confirm="Вы уверены, что хотите удалить этот источник?">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                    
+                                    <!-- Edit Feed Modal -->
+                                    <div class="modal fade" id="editFeedModal{{ feed.id }}" tabindex="-1" aria-labelledby="editFeedModalLabel{{ feed.id }}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="editFeedModalLabel{{ feed.id }}">Редактировать источник</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <form action="{{ url_for('add_feed') }}" method="post">
+                                                    <div class="modal-body">
+                                                        <div class="mb-3">
+                                                            <label for="name{{ feed.id }}" class="form-label">Название источника</label>
+                                                            <input type="text" class="form-control" id="name{{ feed.id }}" name="name" value="{{ feed.name }}" required>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label for="url{{ feed.id }}" class="form-label">URL RSS-фида</label>
+                                                            <input type="url" class="form-control" id="url{{ feed.id }}" name="url" value="{{ feed.url }}" required>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                                                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center p-4">
+                <i class="fas fa-rss fa-3x mb-3 text-muted"></i>
+                <p>Нет настроенных источников новостей</p>
+                <p>Добавьте хотя бы один RSS-фид для получения новостей</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-info-circle"></i> Информация</h5>
+            </div>
+            <div class="card-body">
+                <p>RSS-фиды используются для автоматического получения новостей с различных сайтов.</p>
+                <p>Каждый источник должен предоставлять корректно сформированный RSS-фид со следующими элементами:</p>
+                <ul>
+                    <li>Заголовок новости</li>
+                    <li>Ссылка на полную новость</li>
+                    <li>Краткое описание</li>
+                    <li>Дата публикации</li>
+                </ul>
+                <p>Система будет пытаться извлечь эти данные из разных форматов RSS, но не гарантирует 100% совместимость со всеми фидами.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-lightbulb"></i> Рекомендуемые источники</h5>
+            </div>
+            <div class="card-body">
+                <p>Вот несколько рекомендуемых RSS-фидов для новостей Анапы и Краснодарского края:</p>
+                <ul>
+                    <li><strong>Анапа: </strong> <code>https://anapatoday.com/feed/</code></li>
+                    <li><strong>Кубань24: </strong> <code>https://kuban24.tv/rss</code></li>
+                    <li><strong>Югополис: </strong> <code>https://yugopolis.ru/rss</code></li>
+                    <li><strong>Кубанские новости: </strong> <code>https://kubnews.ru/rss/</code></li>
+                </ul>
+                <p>Вы также можете добавить общероссийские новостные источники для более полного освещения событий.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Feed Modal -->
+<div class="modal fade" id="addFeedModal" tabindex="-1" aria-labelledby="addFeedModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addFeedModalLabel">Добавить источник новостей</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('add_feed') }}" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Название источника <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                        <div class="form-text">Например: «Анапа Сегодня», «Кубанские новости» и т.д.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="url" class="form-label">URL RSS-фида <span class="text-danger">*</span></label>
+                        <input type="url" class="form-control" id="url" name="url" required>
+                        <div class="form-text">Полный URL-адрес RSS-фида, включая протокол http:// или https://</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Добавить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

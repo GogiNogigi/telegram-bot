@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-users"></i> Управление подписчиками</h1>
+    
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSubscriberModal">
+        <i class="fas fa-user-plus"></i> Добавить подписчика
+    </button>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Список подписчиков</h5>
+        <span class="badge bg-primary">{{ subscribers|length }} подписчиков</span>
+    </div>
+    <div class="card-body p-0">
+        {% if subscribers and subscribers|length > 0 %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Имя</th>
+                            <th>Имя пользователя</th>
+                            <th>Заметки</th>
+                            <th>Статус</th>
+                            <th>Дата подписки</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for subscriber in subscribers %}
+                            <tr>
+                                <td>{{ subscriber.user_id }}</td>
+                                <td>
+                                    {% if subscriber.first_name or subscriber.last_name %}
+                                        {{ subscriber.first_name if subscriber.first_name else '' }} 
+                                        {{ subscriber.last_name if subscriber.last_name else '' }}
+                                    {% else %}
+                                        <span class="text-muted">Не указано</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if subscriber.username %}
+                                        <a href="https://t.me/{{ subscriber.username }}" target="_blank">
+                                            @{{ subscriber.username }}
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">Не указано</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if subscriber.notes %}
+                                        <span data-bs-toggle="tooltip" title="{{ subscriber.notes }}">
+                                            {{ subscriber.notes|truncate(20) }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if subscriber.is_active %}
+                                        <span class="badge bg-success">Активен</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Неактивен</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span data-bs-toggle="tooltip" title="{{ subscriber.created_at }}">
+                                        {{ subscriber.created_at[:10] if subscriber.created_at else 'Неизвестно' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <form action="{{ url_for('toggle_subscriber', subscriber_id=subscriber.id) }}" method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-{{ 'warning' if subscriber.is_active else 'success' }}" data-bs-toggle="tooltip" 
+                                                    title="{{ 'Деактивировать' if subscriber.is_active else 'Активировать' }}">
+                                                <i class="fas fa-{{ 'ban' if subscriber.is_active else 'check' }}"></i>
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#editSubscriberModal{{ subscriber.id }}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <form action="{{ url_for('delete_subscriber', subscriber_id=subscriber.id) }}" method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-danger" data-confirm="Вы уверены, что хотите удалить этого подписчика?">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                    
+                                    <!-- Edit Subscriber Modal -->
+                                    <div class="modal fade" id="editSubscriberModal{{ subscriber.id }}" tabindex="-1" aria-labelledby="editSubscriberModalLabel{{ subscriber.id }}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="editSubscriberModalLabel{{ subscriber.id }}">Редактировать подписчика</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <form action="{{ url_for('add_subscriber') }}" method="post">
+                                                    <div class="modal-body">
+                                                        <div class="mb-3">
+                                                            <label for="user_id{{ subscriber.id }}" class="form-label">ID пользователя Telegram</label>
+                                                            <input type="number" class="form-control" id="user_id{{ subscriber.id }}" name="user_id" value="{{ subscriber.user_id }}" readonly>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label for="username{{ subscriber.id }}" class="form-label">Имя пользователя</label>
+                                                            <input type="text" class="form-control" id="username{{ subscriber.id }}" name="username" value="{{ subscriber.username or '' }}">
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label for="first_name{{ subscriber.id }}" class="form-label">Имя</label>
+                                                            <input type="text" class="form-control" id="first_name{{ subscriber.id }}" name="first_name" value="{{ subscriber.first_name or '' }}">
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label for="last_name{{ subscriber.id }}" class="form-label">Фамилия</label>
+                                                            <input type="text" class="form-control" id="last_name{{ subscriber.id }}" name="last_name" value="{{ subscriber.last_name or '' }}">
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label for="notes{{ subscriber.id }}" class="form-label">Заметки</label>
+                                                            <textarea class="form-control" id="notes{{ subscriber.id }}" name="notes" rows="3">{{ subscriber.notes or '' }}</textarea>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                                                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center p-4">
+                <i class="fas fa-users fa-3x mb-3 text-muted"></i>
+                <p>Нет подписчиков в системе</p>
+                <p>Добавьте подписчиков вручную или дождитесь, пока пользователи подпишутся на бота</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Subscriber Modal -->
+<div class="modal fade" id="addSubscriberModal" tabindex="-1" aria-labelledby="addSubscriberModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addSubscriberModalLabel">Добавить подписчика</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('add_subscriber') }}" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="user_id" class="form-label">ID пользователя Telegram <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="user_id" name="user_id" required>
+                        <div class="form-text">ID пользователя можно получить через бота @userinfobot</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Имя пользователя</label>
+                        <input type="text" class="form-control" id="username" name="username">
+                        <div class="form-text">Без символа @</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="first_name" class="form-label">Имя</label>
+                        <input type="text" class="form-control" id="first_name" name="first_name">
+                    </div>
+                    <div class="mb-3">
+                        <label for="last_name" class="form-label">Фамилия</label>
+                        <input type="text" class="form-control" id="last_name" name="last_name">
+                    </div>
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Заметки</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Добавить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

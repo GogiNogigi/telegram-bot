@@ -1,0 +1,166 @@
+/* Custom styles for Anapa News Bot */
+
+/* Adjust main container padding */
+.container {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+/* Make border colors slightly more visible in dark theme */
+.border {
+    border-color: var(--bs-gray-700) !important;
+}
+
+/* Jumbotron style for the hero section */
+.jumbotron {
+    background-color: var(--bs-gray-800);
+    border-radius: 0.5rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+/* Custom card styles */
+.card {
+    background-color: var(--bs-gray-800);
+    border-color: var(--bs-gray-700);
+    margin-bottom: 1.5rem;
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card-header {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-bottom-color: var(--bs-gray-700);
+}
+
+/* News item styles */
+.news-item {
+    padding: 1rem;
+    border-bottom: 1px solid var(--bs-gray-700);
+}
+
+.news-item:last-child {
+    border-bottom: none;
+}
+
+.news-date {
+    font-size: 0.85rem;
+    color: var(--bs-gray-500);
+}
+
+.news-source {
+    font-weight: bold;
+    color: var(--bs-info);
+}
+
+/* Table customization */
+.table {
+    border-color: var(--bs-gray-700);
+}
+
+/* Navbar customization */
+.navbar {
+    margin-bottom: 2rem;
+    background-color: var(--bs-gray-900) !important;
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+}
+
+.navbar-brand img {
+    margin-right: 0.75rem;
+}
+
+/* Forms and inputs */
+.form-control, .form-select {
+    background-color: var(--bs-gray-800);
+    border-color: var(--bs-gray-600);
+    color: var(--bs-light);
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: var(--bs-gray-800);
+    border-color: var(--bs-primary);
+    color: var(--bs-light);
+    box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+/* Custom badges */
+.badge-inactive {
+    background-color: var(--bs-gray-600);
+}
+
+/* Footer styles */
+footer {
+    padding: 2rem 0;
+    text-align: center;
+    margin-top: 3rem;
+    border-top: 1px solid var(--bs-gray-700);
+}
+
+/* Stats cards */
+.stats-card {
+    text-align: center;
+    padding: 1.5rem;
+}
+
+.stats-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.stats-label {
+    font-size: 1rem;
+    color: var(--bs-gray-400);
+}
+
+/* Status indicator */
+.status-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+}
+
+.status-active {
+    background-color: var(--bs-success);
+}
+
+.status-inactive {
+    background-color: var(--bs-danger);
+}
+
+/* Bot preview */
+.bot-preview {
+    background-color: #242f3e;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    max-width: 350px;
+    margin: 0 auto;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.bot-message {
+    background-color: #1e2733;
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+/* Animation for loading */
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+
+.loading {
+    animation: pulse 1.5s infinite;
+}
