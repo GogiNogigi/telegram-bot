@@ -270,7 +270,7 @@ def toggle_admin(subscriber_id):
     subscriber.is_admin = not subscriber.is_admin
     db.session.commit()
     
-    status = "назначен администратором" if subscriber.is_admin else "удален из администраторов"
+    status = "назначен администратором" if subscriber.is_admin else "лишен прав администратора"
     flash(f'Подписчик с ID {subscriber.user_id} {status}', 'success')
     return redirect(url_for('subscribers'))
 

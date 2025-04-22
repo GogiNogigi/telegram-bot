@@ -191,6 +191,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Проверка является ли пользователь администратором
+async def is_admin(user_id: int) -> bool:
+    """Проверяет, является ли пользователь администратором"""
+    if not use_db:
+        return False
+    
+    with app.app_context():
+        subscriber = Subscriber.query.filter_by(user_id=user_id, is_admin=True).first()
+        return subscriber is not None
+
 # Create keyboards for bot
 def get_main_keyboard():
     """Create main keyboard with commands"""
@@ -198,7 +208,24 @@ def get_main_keyboard():
         keyboard=[
             [KeyboardButton(text="📰 Последние новости")],
             [KeyboardButton(text="✅ Подписаться"), KeyboardButton(text="❌ Отписаться")],
-            [KeyboardButton(text="ℹ️ Помощь")]
+            [KeyboardButton(text="⚙️ Настройки"), KeyboardButton(text="ℹ️ Информация")],
+            [KeyboardButton(text="❓ Помощь")]
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=False
+    )
+    return keyboard
+
+# Создаем клавиатуру для администраторов
+def get_admin_keyboard():
+    """Create keyboard with admin commands"""
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="📰 Последние новости")],
+            [KeyboardButton(text="✅ Подписаться"), KeyboardButton(text="❌ Отписаться")],
+            [KeyboardButton(text="⚙️ Настройки"), KeyboardButton(text="ℹ️ Информация")],
+            [KeyboardButton(text="🔄 Обновить новости"), KeyboardButton(text="📊 Статистика")],
+            [KeyboardButton(text="❓ Помощь")]
         ],
         resize_keyboard=True,
         one_time_keyboard=False
@@ -331,7 +358,7 @@ async def cmd_unsubscribe(message: types.Message):
         )
 
 @dp.message(Command('помощь', 'help'))
-@dp.message(F.text == "ℹ️ Помощь")
+@dp.message(F.text == "❓ Помощь")
 async def cmd_help(message: types.Message):
     """Handle /помощь command"""
     if not is_bot_active():
@@ -341,18 +368,302 @@ async def cmd_help(message: types.Message):
         )
         return
     
-    keyboard = get_main_keyboard()
+    # Проверяем является ли пользователь администратором
+    is_user_admin = await is_admin(message.from_user.id)
+    keyboard = get_admin_keyboard() if is_user_admin else get_main_keyboard()
+    
+    commands_text = (
+        "📋 <b>Доступные команды:</b>\n"
+        "/start - Начать работу с ботом\n"
+        "/новости - Получить свежие новости\n"
+        "/подписаться - Подписаться на ежедневную рассылку\n"
+        "/отписаться - Отписаться от рассылки\n"
+        "/настройки - Настройки уведомлений\n"
+        "/информация - Информация о боте\n"
+        "/помощь - Показать список команд\n\n"
+    )
+    
+    if is_user_admin:
+        commands_text += (
+            "<b>Команды администратора:</b>\n"
+            "/статистика - Просмотр статистики бота\n"
+            "/обновить - Обновить новости вручную\n\n"
+        )
+    
+    commands_text += (
+        "Вы также можете использовать кнопки меню для удобства.\n\n"
+        "Бот «Новости Анапа Pro» автоматически рассылает новости из различных источников."
+    )
     
     await message.reply(
-        "📋 <b>Доступные команды:</b>\n"
-        "/новости - получить свежие новости\n"
-        "/подписаться - подписаться на ежедневную рассылку\n"
-        "/отписаться - отписаться от рассылки\n"
-        "/помощь - показать список команд\n\n"
-        "Вы также можете использовать кнопки меню для удобства.\n\n"
-        "Бот «Новости Анапа Pro» автоматически рассылает новости из различных источников.",
+        commands_text,
         parse_mode="HTML",
         reply_markup=keyboard
+    )
+
+@dp.message(Command('информация', 'info'))
+@dp.message(F.text == "ℹ️ Информация")
+async def cmd_info(message: types.Message):
+    """Обработчик команды /информация"""
+    if not is_bot_active():
+        await message.reply(
+            "⚠️ Бот временно отключен администратором. Пожалуйста, попробуйте позже.",
+            parse_mode="HTML"
+        )
+        return
+    
+    # Проверяем является ли пользователь администратором
+    is_user_admin = await is_admin(message.from_user.id)
+    keyboard = get_admin_keyboard() if is_user_admin else get_main_keyboard()
+    
+    # Получаем информацию о боте
+    try:
+        with app.app_context():
+            # Статус бота
+            settings = BotSettings.query.first()
+            status = "Активен ✅" if (settings and settings.is_active) else "Неактивен ❌"
+            
+            # Источники новостей
+            feed_sources = FeedSource.query.filter_by(is_active=True).all()
+            feeds_list = "\n".join([f"• {feed.name}" for feed in feed_sources]) if feed_sources else "Нет активных источников"
+            
+            # Подписчики
+            active_subscribers = Subscriber.query.filter_by(is_active=True).count()
+            total_subscribers = Subscriber.query.count()
+            
+            # Время рассылки
+            main_time = settings.daily_send_time.strftime('%H:%M') if settings and settings.daily_send_time else "08:00"
+            additional_times = SendTime.query.filter_by(is_active=True).all()
+            times_list = [main_time]
+            times_list.extend([time.send_time.strftime('%H:%M') for time in additional_times])
+            times_formatted = ", ".join(times_list)
+            
+            # Новости
+            news_count = NewsItem.query.count()
+            latest_news = NewsItem.query.order_by(NewsItem.created_at.desc()).first()
+            latest_update = latest_news.created_at.strftime('%Y-%m-%d %H:%M') if latest_news else "Нет данных"
+            
+            # Собираем текст сообщения
+            info_text = (
+                "<b>📊 Информация о боте</b>\n\n"
+                f"<b>Статус:</b> {status}\n"
+                f"<b>Подписчиков:</b> {active_subscribers} активных из {total_subscribers} всего\n"
+                f"<b>Количество новостей в базе:</b> {news_count}\n"
+                f"<b>Последнее обновление:</b> {latest_update}\n"
+                f"<b>Рассылка в:</b> {times_formatted}\n\n"
+                "<b>📰 Источники новостей:</b>\n"
+                f"{feeds_list}\n\n"
+            )
+            
+            # Добавляем админскую информацию если пользователь админ
+            if is_user_admin:
+                admins = Subscriber.query.filter_by(is_admin=True).all()
+                admins_list = "\n".join([f"• {admin.first_name or ''} {admin.last_name or ''} (@{admin.username or 'нет username'}) - ID: {admin.user_id}" 
+                                        for admin in admins]) if admins else "Нет администраторов"
+                
+                info_text += (
+                    "<b>👑 Администраторы бота:</b>\n"
+                    f"{admins_list}\n\n"
+                )
+            
+            info_text += "Для управления подпиской используйте соответствующие команды в меню."
+                
+    except Exception as e:
+        logger.error(f"Error getting bot info: {e}")
+        info_text = "⚠️ Не удалось получить информацию о боте. Пожалуйста, попробуйте позже."
+    
+    await message.reply(
+        info_text,
+        parse_mode="HTML",
+        reply_markup=keyboard
+    )
+
+@dp.message(Command('настройки', 'settings'))
+@dp.message(F.text == "⚙️ Настройки")
+async def cmd_settings(message: types.Message):
+    """Обработчик команды /настройки"""
+    if not is_bot_active():
+        await message.reply(
+            "⚠️ Бот временно отключен администратором. Пожалуйста, попробуйте позже.",
+            parse_mode="HTML"
+        )
+        return
+    
+    # Проверяем является ли пользователь администратором
+    is_user_admin = await is_admin(message.from_user.id)
+    keyboard = get_admin_keyboard() if is_user_admin else get_main_keyboard()
+    
+    # Получаем информацию о подписке пользователя
+    user_id = message.from_user.id
+    try:
+        with app.app_context():
+            subscriber = Subscriber.query.filter_by(user_id=user_id).first()
+            is_subscribed = subscriber and subscriber.is_active
+            
+            # Основное время рассылки
+            settings = BotSettings.query.first()
+            main_time = settings.daily_send_time.strftime('%H:%M') if settings and settings.daily_send_time else "08:00"
+            
+            # Дополнительные времена
+            additional_times = SendTime.query.filter_by(is_active=True).all()
+            if additional_times:
+                times_list = [time.send_time.strftime('%H:%M') for time in additional_times]
+                times_text = ", ".join(times_list)
+            else:
+                times_text = "Не настроены"
+            
+            # Формируем текст настроек
+            settings_text = (
+                "<b>⚙️ Настройки</b>\n\n"
+                f"<b>Статус подписки:</b> {'Активна ✅' if is_subscribed else 'Неактивна ❌'}\n"
+                f"<b>Основное время рассылки:</b> {main_time}\n"
+                f"<b>Дополнительные рассылки:</b> {times_text}\n\n"
+            )
+            
+            if is_user_admin:
+                settings_text += (
+                    "<b>👑 Права администратора:</b> Есть\n\n"
+                    "Используйте веб-интерфейс администратора для настройки бота:\n"
+                    "• Управление источниками\n"
+                    "• Управление временем рассылки\n"
+                    "• Настройка токена и параметров бота"
+                )
+            else:
+                settings_text += (
+                    "Для управления подпиской используйте команды /подписаться и /отписаться.\n\n"
+                    "Вы будете получать новости по расписанию, настроенному администратором бота."
+                )
+    
+    except Exception as e:
+        logger.error(f"Error getting settings: {e}")
+        settings_text = "⚠️ Не удалось получить настройки. Пожалуйста, попробуйте позже."
+    
+    await message.reply(
+        settings_text,
+        parse_mode="HTML",
+        reply_markup=keyboard
+    )
+
+@dp.message(Command('статистика', 'stats'))
+@dp.message(F.text == "📊 Статистика")
+async def cmd_stats(message: types.Message):
+    """Обработчик команды /статистика (только для администраторов)"""
+    if not is_bot_active():
+        await message.reply(
+            "⚠️ Бот временно отключен администратором. Пожалуйста, попробуйте позже.",
+            parse_mode="HTML"
+        )
+        return
+    
+    # Проверяем является ли пользователь администратором
+    is_user_admin = await is_admin(message.from_user.id)
+    if not is_user_admin:
+        await message.reply(
+            "⚠️ Эта команда доступна только администраторам бота.",
+            parse_mode="HTML",
+            reply_markup=get_main_keyboard()
+        )
+        return
+    
+    # Собираем статистику
+    try:
+        with app.app_context():
+            # Подписчики
+            total_subscribers = Subscriber.query.count()
+            active_subscribers = Subscriber.query.filter_by(is_active=True).count()
+            inactive_subscribers = total_subscribers - active_subscribers
+            admins_count = Subscriber.query.filter_by(is_admin=True).count()
+            
+            # Источники новостей
+            total_feeds = FeedSource.query.count()
+            active_feeds = FeedSource.query.filter_by(is_active=True).count()
+            inactive_feeds = total_feeds - active_feeds
+            
+            # Новости
+            news_count = NewsItem.query.count()
+            
+            # Статистика по дням
+            # Тут можно добавить более детальную статистику в будущем
+            
+            stats_text = (
+                "<b>📊 Статистика бота</b>\n\n"
+                f"<b>Подписчики:</b>\n"
+                f"• Всего: {total_subscribers}\n"
+                f"• Активных: {active_subscribers}\n"
+                f"• Неактивных: {inactive_subscribers}\n"
+                f"• Администраторов: {admins_count}\n\n"
+                f"<b>Источники новостей:</b>\n"
+                f"• Всего: {total_feeds}\n"
+                f"• Активных: {active_feeds}\n"
+                f"• Неактивных: {inactive_feeds}\n\n"
+                f"<b>Новости:</b>\n"
+                f"• Всего записей: {news_count}\n\n"
+                "Используйте веб-интерфейс для просмотра подробной статистики и управления ботом."
+            )
+    
+    except Exception as e:
+        logger.error(f"Error getting stats: {e}")
+        stats_text = "⚠️ Не удалось получить статистику. Пожалуйста, попробуйте позже."
+        
+    await message.reply(
+        stats_text,
+        parse_mode="HTML",
+        reply_markup=get_admin_keyboard()
+    )
+
+@dp.message(Command('обновить', 'refresh'))
+@dp.message(F.text == "🔄 Обновить новости")
+async def cmd_refresh(message: types.Message):
+    """Обработчик команды /обновить (только для администраторов)"""
+    if not is_bot_active():
+        await message.reply(
+            "⚠️ Бот временно отключен администратором. Пожалуйста, попробуйте позже.",
+            parse_mode="HTML"
+        )
+        return
+    
+    # Проверяем является ли пользователь администратором
+    is_user_admin = await is_admin(message.from_user.id)
+    if not is_user_admin:
+        await message.reply(
+            "⚠️ Эта команда доступна только администраторам бота.",
+            parse_mode="HTML",
+            reply_markup=get_main_keyboard()
+        )
+        return
+    
+    await message.reply(
+        "🔄 <i>Запущено обновление новостей...</i>", 
+        parse_mode="HTML"
+    )
+    
+    try:
+        # Получаем лимит новостей из настроек
+        news_per_source = get_news_per_source()
+        
+        # Получаем новости
+        news_items, has_errors = get_latest_news(news_per_source)
+        
+        # Сохраняем в базу данных
+        if use_db:
+            save_news_items(news_items)
+        
+        # Формируем ответ
+        if news_items:
+            result_text = f"✅ Успешно обновлено {len(news_items)} новостей."
+            if has_errors:
+                result_text += "\n⚠️ Некоторые источники были недоступны."
+        else:
+            result_text = "⚠️ Не удалось получить новости. Проверьте настройки источников."
+            
+    except Exception as e:
+        logger.error(f"Error refreshing news: {e}")
+        result_text = f"❌ Ошибка при обновлении новостей: {str(e)}"
+    
+    await message.reply(
+        result_text,
+        parse_mode="HTML",
+        reply_markup=get_admin_keyboard()
     )
 
 @dp.message()
@@ -361,10 +672,14 @@ async def unknown_message(message: types.Message):
     if not is_bot_active():
         return
     
+    # Проверяем является ли пользователь администратором
+    is_user_admin = await is_admin(message.from_user.id)
+    keyboard = get_admin_keyboard() if is_user_admin else get_main_keyboard()
+    
     # If it's not a command or a recognized button, offer help
     await message.reply(
         "Я не понимаю эту команду. Воспользуйтесь меню или введите /помощь для списка доступных команд.",
-        reply_markup=get_main_keyboard()
+        reply_markup=keyboard
     )
 
 async def send_news_to_subscribers():
