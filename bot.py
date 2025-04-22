@@ -250,15 +250,33 @@ async def cmd_start(message: types.Message):
     
     keyboard = get_main_keyboard()
     
-    await message.reply(
-        "👋 Добро пожаловать в бот «Новости Анапа Pro»!\n\n"
-        "Я буду держать вас в курсе последних новостей Анапы и Краснодарского края.\n\n"
+    # Проверяем является ли пользователь администратором
+    is_user_admin = await is_admin(message.from_user.id)
+    keyboard = get_admin_keyboard() if is_user_admin else get_main_keyboard()
+    
+    commands_list = (
         "📋 <b>Доступные команды:</b>\n"
         "/новости - получить свежие новости\n"
         "/подписаться - подписаться на ежедневную рассылку\n"
         "/отписаться - отписаться от рассылки\n"
-        "/помощь - показать список команд\n\n"
-        "Вы также можете использовать кнопки меню для удобства.",
+        "/настройки - настройки уведомлений\n"
+        "/информация - информация о боте\n"
+        "/помощь - показать список команд\n"
+    )
+    
+    if is_user_admin:
+        admin_commands = (
+            "\n<b>Команды администратора:</b>\n"
+            "/статистика - просмотр статистики бота\n"
+            "/обновить - обновить новости вручную\n"
+        )
+        commands_list += admin_commands
+    
+    await message.reply(
+        f"👋 Добро пожаловать в бот «Новости Анапа Pro»!\n\n"
+        f"Я буду держать вас в курсе последних новостей Анапы и Краснодарского края.\n\n"
+        f"{commands_list}\n"
+        f"Вы также можете использовать кнопки меню для удобства.",
         parse_mode="HTML",
         reply_markup=keyboard
     )
@@ -290,11 +308,15 @@ async def cmd_news(message: types.Message):
     if has_errors:
         formatted_news += "\n\n⚠️ <i>Некоторые источники новостей временно недоступны</i>"
     
+    # Проверяем является ли пользователь администратором
+    is_user_admin = await is_admin(message.from_user.id)
+    keyboard = get_admin_keyboard() if is_user_admin else get_main_keyboard()
+    
     await message.reply(
         formatted_news, 
         parse_mode="HTML", 
         disable_web_page_preview=True,
-        reply_markup=get_main_keyboard()
+        reply_markup=keyboard
     )
 
 @dp.message(Command('подписаться', 'subscribe'))
@@ -313,6 +335,10 @@ async def cmd_subscribe(message: types.Message):
     first_name = message.from_user.first_name
     last_name = message.from_user.last_name
     
+    # Проверяем является ли пользователь администратором
+    is_user_admin = await is_admin(message.from_user.id)
+    keyboard = get_admin_keyboard() if is_user_admin else get_main_keyboard()
+    
     if add_subscriber(user_id, username, first_name, last_name):
         # Get daily send time
         send_time = get_daily_send_time()
@@ -322,13 +348,13 @@ async def cmd_subscribe(message: types.Message):
             f"✅ Вы успешно подписались на ежедневную рассылку новостей!\n"
             f"Вы будете получать свежие новости каждый день в {time_str}.",
             parse_mode="HTML",
-            reply_markup=get_main_keyboard()
+            reply_markup=keyboard
         )
     else:
         await message.reply(
             "ℹ️ Вы уже подписаны на рассылку новостей.",
             parse_mode="HTML",
-            reply_markup=get_main_keyboard()
+            reply_markup=keyboard
         )
 
 @dp.message(Command('отписаться', 'unsubscribe'))
@@ -344,17 +370,21 @@ async def cmd_unsubscribe(message: types.Message):
     
     user_id = message.from_user.id
     
+    # Проверяем является ли пользователь администратором
+    is_user_admin = await is_admin(message.from_user.id)
+    keyboard = get_admin_keyboard() if is_user_admin else get_main_keyboard()
+    
     if remove_subscriber(user_id):
         await message.reply(
             "✅ Вы успешно отписались от рассылки новостей.",
             parse_mode="HTML",
-            reply_markup=get_main_keyboard()
+            reply_markup=keyboard
         )
     else:
         await message.reply(
             "ℹ️ Вы не были подписаны на рассылку новостей.",
             parse_mode="HTML",
-            reply_markup=get_main_keyboard()
+            reply_markup=keyboard
         )
 
 @dp.message(Command('помощь', 'help'))
