@@ -147,7 +147,7 @@
                 <div class="mb-3">
                     <div class="d-flex justify-content-between">
                         <span>Последнее обновление:</span>
-                        <span>{{ settings.last_updated.strftime('%Y-%m-%d %H:%M') if settings.last_updated else 'Неизвестно' }}</span>
+                        <span>{{ format_date(settings.last_updated, '%Y-%m-%d %H:%M') if settings.last_updated else 'Неизвестно' }}</span>
                     </div>
                 </div>
                 

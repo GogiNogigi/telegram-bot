@@ -68,7 +68,7 @@
                                 </td>
                                 <td>
                                     <span data-bs-toggle="tooltip" title="{{ subscriber.created_at }}">
-                                        {{ subscriber.created_at.strftime('%Y-%m-%d') if subscriber.created_at else 'Неизвестно' }}
+                                        {{ format_date(subscriber.created_at) if subscriber.created_at else 'Неизвестно' }}
                                     </span>
                                 </td>
                                 <td>
