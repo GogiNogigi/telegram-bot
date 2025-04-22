@@ -574,6 +574,35 @@ def api_news():
             'error': str(e)
         })
 
+# Функция для инициализации админов
+def initialize_admins():
+    """Initialize admin users with predefined IDs"""
+    # List of admin user IDs
+    admin_ids = [502783765, 957555131, 1148332858]
+    
+    for admin_id in admin_ids:
+        # Проверяем существует ли пользователь
+        admin = Subscriber.query.filter_by(user_id=admin_id).first()
+        
+        if admin:
+            # Если пользователь существует, делаем его админом
+            if not admin.is_admin:
+                admin.is_admin = True
+                print(f"Пользователь ID {admin_id} назначен администратором")
+        else:
+            # Если пользователя нет, создаем его как админа
+            new_admin = Subscriber(
+                user_id=admin_id,
+                username=None,
+                first_name=f"Admin {admin_id}",
+                is_active=True,
+                is_admin=True
+            )
+            db.session.add(new_admin)
+            print(f"Создан новый администратор с ID {admin_id}")
+    
+    db.session.commit()
+
 # Create DB tables on startup
 with app.app_context():
     db.create_all()
@@ -596,6 +625,9 @@ with app.app_context():
         )
         db.session.add(settings)
         db.session.commit()
+    
+    # Initialize admin users
+    initialize_admins()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
