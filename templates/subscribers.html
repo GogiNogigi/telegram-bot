@@ -25,6 +25,7 @@
                             <th>Имя пользователя</th>
                             <th>Заметки</th>
                             <th>Статус</th>
+                            <th>Роль</th>
                             <th>Дата подписки</th>
                             <th>Действия</th>
                         </tr>
@@ -67,6 +68,13 @@
                                     {% endif %}
                                 </td>
                                 <td>
+                                    {% if subscriber.is_admin %}
+                                        <span class="badge bg-primary">Администратор</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Подписчик</span>
+                                    {% endif %}
+                                </td>
+                                <td>
                                     <span data-bs-toggle="tooltip" title="{{ subscriber.created_at }}">
                                         {{ format_date(subscriber.created_at) if subscriber.created_at else 'Неизвестно' }}
                                     </span>
@@ -77,6 +85,12 @@
                                             <button type="submit" class="btn btn-{{ 'warning' if subscriber.is_active else 'success' }}" data-bs-toggle="tooltip" 
                                                     title="{{ 'Деактивировать' if subscriber.is_active else 'Активировать' }}">
                                                 <i class="fas fa-{{ 'ban' if subscriber.is_active else 'check' }}"></i>
+                                            </button>
+                                        </form>
+                                        <form action="{{ url_for('toggle_admin', subscriber_id=subscriber.id) }}" method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-{{ 'info' if subscriber.is_admin else 'outline-primary' }}" data-bs-toggle="tooltip" 
+                                                    title="{{ 'Убрать права администратора' if subscriber.is_admin else 'Назначить администратором' }}">
+                                                <i class="fas fa-{{ 'user-shield' if subscriber.is_admin else 'user-plus' }}"></i>
                                             </button>
                                         </form>
                                         <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#editSubscriberModal{{ subscriber.id }}">

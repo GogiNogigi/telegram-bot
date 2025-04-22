@@ -67,6 +67,7 @@ class Subscriber(db.Model):
     last_name = Column(String(100), nullable=True)
     notes = Column(String(500), nullable=True)
     is_active = Column(Boolean, default=True)
+    is_admin = Column(Boolean, default=False)
     created_at = Column(DateTime, default=func.now())
     last_updated = Column(DateTime, default=func.now(), onupdate=func.now())
     
@@ -82,6 +83,7 @@ class Subscriber(db.Model):
             'last_name': self.last_name,
             'notes': self.notes,
             'is_active': self.is_active,
+            'is_admin': self.is_admin,
             'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S') if self.created_at else None,
             'last_updated': self.last_updated.strftime('%Y-%m-%d %H:%M:%S') if self.last_updated else None
         }
@@ -258,6 +260,17 @@ def toggle_subscriber(subscriber_id):
     db.session.commit()
     
     status = "активирован" if subscriber.is_active else "деактивирован"
+    flash(f'Подписчик с ID {subscriber.user_id} {status}', 'success')
+    return redirect(url_for('subscribers'))
+
+@app.route('/subscribers/toggle_admin/<int:subscriber_id>', methods=['POST'])
+def toggle_admin(subscriber_id):
+    """Toggle subscriber admin status"""
+    subscriber = Subscriber.query.get_or_404(subscriber_id)
+    subscriber.is_admin = not subscriber.is_admin
+    db.session.commit()
+    
+    status = "назначен администратором" if subscriber.is_admin else "удален из администраторов"
     flash(f'Подписчик с ID {subscriber.user_id} {status}', 'success')
     return redirect(url_for('subscribers'))
 
