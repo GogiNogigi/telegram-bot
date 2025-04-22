@@ -46,7 +46,7 @@
                                 </td>
                                 <td>
                                     <span data-bs-toggle="tooltip" title="{{ feed.created_at }}">
-                                        {{ feed.created_at[:10] if feed.created_at else 'Неизвестно' }}
+                                        {{ format_date(feed.created_at) if feed.created_at else 'Неизвестно' }}
                                     </span>
                                 </td>
                                 <td>

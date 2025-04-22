@@ -29,8 +29,21 @@ def inject_bot_username():
     custom_username = os.environ.get('TELEGRAM_BOT_USERNAME')
     if custom_username:
         bot_username = custom_username
-        
-    return {'bot_username': bot_username}
+    
+    # Add current datetime    
+    now = datetime.now()
+    
+    # Utility function for template to format dates
+    def format_date(dt, format_str='%Y-%m-%d'):
+        if dt:
+            return dt.strftime(format_str)
+        return ''
+    
+    return {
+        'bot_username': bot_username,
+        'now': now,
+        'format_date': format_date
+    }
 
 # Use file-based SQLite for persistence
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///anapa_news.db")
