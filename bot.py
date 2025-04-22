@@ -194,12 +194,21 @@ logger = logging.getLogger(__name__)
 # Проверка является ли пользователь администратором
 async def is_admin(user_id: int) -> bool:
     """Проверяет, является ли пользователь администратором"""
-    if not use_db:
-        return False
+    # Предопределенный список администраторов для аварийного режима
+    admin_ids = [502783765, 957555131, 1148332858]
     
-    with app.app_context():
-        subscriber = Subscriber.query.filter_by(user_id=user_id, is_admin=True).first()
-        return subscriber is not None
+    # Если БД недоступна, используем запасной список
+    if not use_db:
+        return user_id in admin_ids
+    
+    try:
+        with app.app_context():
+            subscriber = Subscriber.query.filter_by(user_id=user_id, is_admin=True).first()
+            return subscriber is not None
+    except Exception as e:
+        logger.error(f"Ошибка при проверке статуса администратора: {e}")
+        # Если произошла ошибка, используем запасной список
+        return user_id in admin_ids
 
 # Create keyboards for bot
 def get_main_keyboard():
