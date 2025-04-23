@@ -497,6 +497,10 @@ async def cmd_info(message: types.Message):
             latest_news = NewsItem.query.order_by(NewsItem.created_at.desc()).first()
             latest_update = latest_news.created_at.strftime('%Y-%m-%d %H:%M') if latest_news else "Нет данных"
             
+            # Получаем текущее московское время
+            moscow_now = get_moscow_time()
+            moscow_time_str = moscow_now.strftime('%H:%M:%S %d.%m.%Y')
+            
             # Собираем текст сообщения
             info_text = (
                 "<b>📊 Информация о боте</b>\n\n"
@@ -504,7 +508,8 @@ async def cmd_info(message: types.Message):
                 f"<b>Подписчиков:</b> {active_subscribers} активных из {total_subscribers} всего\n"
                 f"<b>Количество новостей в базе:</b> {news_count}\n"
                 f"<b>Последнее обновление:</b> {latest_update}\n"
-                f"<b>Рассылка в:</b> {times_formatted}\n\n"
+                f"<b>Рассылка в:</b> {times_formatted} <i>(московское время)</i>\n"
+                f"<b>Текущее московское время:</b> {moscow_time_str}\n\n"
                 "<b>📰 Источники новостей:</b>\n"
                 f"{feeds_list}\n\n"
             )
@@ -566,12 +571,17 @@ async def cmd_settings(message: types.Message):
             else:
                 times_text = "Не настроены"
             
+            # Получаем текущее московское время
+            moscow_now = get_moscow_time()
+            moscow_time_str = moscow_now.strftime('%H:%M:%S %d.%m.%Y')
+            
             # Формируем текст настроек
             settings_text = (
                 "<b>⚙️ Настройки</b>\n\n"
                 f"<b>Статус подписки:</b> {'Активна ✅' if is_subscribed else 'Неактивна ❌'}\n"
-                f"<b>Основное время рассылки:</b> {main_time}\n"
-                f"<b>Дополнительные рассылки:</b> {times_text}\n\n"
+                f"<b>Основное время рассылки:</b> {main_time} <i>(московское время)</i>\n"
+                f"<b>Дополнительные рассылки:</b> {times_text} <i>(московское время)</i>\n"
+                f"<b>Текущее московское время:</b> {moscow_time_str}\n\n"
             )
             
             if is_user_admin:
@@ -795,12 +805,22 @@ async def send_news_to_subscribers():
     except Exception as e:
         logger.error(f"Error in scheduled news delivery: {e}")
 
+def get_moscow_time():
+    """
+    Получить текущее время по Москве (UTC+3)
+    """
+    # Московское время = UTC+3
+    moscow_offset = timedelta(hours=3)
+    utc_time = datetime.utcnow()
+    moscow_time = utc_time + moscow_offset
+    return moscow_time
+
 async def scheduler():
     """Run scheduled tasks"""
     while True:
         try:
-            # Get current time
-            now = datetime.now().time()
+            # Получаем текущее время по Москве
+            now = get_moscow_time().time()
             
             # Get all send times
             send_times = get_all_send_times()
@@ -812,7 +832,7 @@ async def scheduler():
                 target_minutes = send_time.hour * 60 + send_time.minute
                 
                 if abs(current_minutes - target_minutes) <= 1:
-                    logger.info(f"Scheduled news delivery triggered at {now.strftime('%H:%M')}")
+                    logger.info(f"Scheduled news delivery triggered at {now.strftime('%H:%M')} MSK time")
                     await send_news_to_subscribers()
                     # Wait a bit more than a minute to avoid sending twice
                     await asyncio.sleep(70)
