@@ -592,6 +592,89 @@ def api_news():
             'error': str(e)
         })
 
+@app.route('/api/health', methods=['GET'])
+def api_health():
+    """API для проверки состояния сервиса (heartbeat)"""
+    import os
+    import json
+    from datetime import datetime
+    
+    # Проверка базы данных
+    db_ok = True
+    db_error = None
+    try:
+        db.session.execute(db.select(BotSettings).limit(1))
+    except Exception as e:
+        db_ok = False
+        db_error = str(e)
+    
+    # Проверка настроек бота
+    bot_settings = BotSettings.query.first()
+    bot_active = bot_settings.is_active if bot_settings else False
+    
+    # Проверка наличия telegram_token
+    token_exists = bool(bot_settings and bot_settings.telegram_token)
+    
+    # Сбор информации о системе
+    uptime = None
+    try:
+        with open('/proc/uptime', 'r') as f:
+            uptime = float(f.readline().split()[0])
+    except:
+        pass
+    
+    # Проверка heartbeat файла если он существует
+    heartbeat_data = {}
+    heartbeat_file = "heartbeat.json"
+    if os.path.exists(heartbeat_file):
+        try:
+            with open(heartbeat_file, 'r') as f:
+                heartbeat_data = json.load(f)
+        except:
+            pass
+    
+    # Получение информации о подписчиках
+    subscribers_count = Subscriber.query.filter_by(is_active=True).count()
+    
+    # Получение информации о новостях
+    news_count = NewsItem.query.count()
+    latest_news = NewsItem.query.order_by(NewsItem.created_at.desc()).first()
+    latest_news_time = latest_news.created_at.isoformat() if latest_news else None
+    
+    # Получение информации о источниках
+    feeds_count = FeedSource.query.filter_by(is_active=True).count()
+    
+    # Отправка ответа
+    response = {
+        'status': 'ok' if db_ok else 'error',
+        'timestamp': datetime.now().isoformat(),
+        'components': {
+            'database': {
+                'status': 'healthy' if db_ok else 'error',
+                'error': db_error
+            },
+            'bot': {
+                'active': bot_active,
+                'token_exists': token_exists
+            },
+            'system': {
+                'uptime': uptime
+            },
+            'stats': {
+                'subscribers': subscribers_count,
+                'news_items': news_count,
+                'latest_news_time': latest_news_time,
+                'active_feeds': feeds_count
+            }
+        }
+    }
+    
+    # Добавляем данные heartbeat, если они есть
+    if heartbeat_data:
+        response['heartbeat'] = heartbeat_data
+    
+    return jsonify(response)
+
 # Функция для инициализации админов
 def initialize_admins():
     """Initialize admin users with predefined IDs"""
