@@ -7,9 +7,28 @@
 mkdir -p logs
 echo "$(date): Starting services in always-on mode" > logs/entrypoint.log
 
+# Устанавливаем переменные среды для порта
+if [ -z "$PORT" ]; then
+  # Если переменная PORT не установлена (локальный запуск), используем 5000
+  export PORT="5000"
+  echo "PORT not set, using default port 5000" >> logs/entrypoint.log
+else
+  echo "Using provided PORT: $PORT" >> logs/entrypoint.log
+fi
+
+# Проверяем, есть ли executable права
+if [ ! -x "run_telegram_bot.py" ]; then
+  echo "Adding executable permissions to scripts..." >> logs/entrypoint.log
+  chmod +x run_telegram_bot.py always_on.py
+fi
+
+# Отдельное логирование для Telegram бота
+BOT_LOG="logs/telegram_bot_$(date +%Y%m%d_%H%M%S).log"
+echo "Bot logs will be saved to: $BOT_LOG" >> logs/entrypoint.log
+
 # Запускаем Telegram бота в фоновом режиме 
 echo "Starting Telegram bot..." >> logs/entrypoint.log
-python run_telegram_bot.py > logs/telegram_bot.log 2>&1 &
+python run_telegram_bot.py > "$BOT_LOG" 2>&1 &
 BOT_PID=$!
 echo "Telegram bot started with PID: $BOT_PID" >> logs/entrypoint.log
 
@@ -19,6 +38,18 @@ echo $BOT_PID > bot.pid
 # Небольшая пауза для инициализации бота
 sleep 2
 
+# Проверяем, что бот запустился
+if ps -p $BOT_PID > /dev/null; then
+  echo "Telegram bot is running with PID: $BOT_PID" >> logs/entrypoint.log
+else
+  echo "ERROR: Telegram bot failed to start!" >> logs/entrypoint.log
+fi
+
+# Пишем информацию о режиме работы
+echo "System running in Always-On mode!" >> logs/entrypoint.log
+echo "Bot will continue to work even when browser is closed." >> logs/entrypoint.log
+
 # Запускаем веб-приложение Flask (Gunicorn в foreground режиме)
 echo "Starting Flask web application..." >> logs/entrypoint.log
-exec gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 main:app
+echo "Binding to: 0.0.0.0:$PORT" >> logs/entrypoint.log
+exec gunicorn --bind "0.0.0.0:$PORT" --workers 2 --timeout 120 main:app
