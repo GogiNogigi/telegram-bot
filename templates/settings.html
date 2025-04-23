@@ -150,6 +150,13 @@
                         <span>{{ format_date(settings.last_updated, '%Y-%m-%d %H:%M') if settings.last_updated else 'Неизвестно' }}</span>
                     </div>
                 </div>
+
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Текущее время (Москва):</span>
+                        <span id="moscowTime">{{ format_date(now, '%H:%M:%S %d.%m.%Y') }}</span>
+                    </div>
+                </div>
                 
                 <hr>
                 

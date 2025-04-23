@@ -807,13 +807,23 @@ async def send_news_to_subscribers():
 
 def get_moscow_time():
     """
-    Получить текущее время по Москве (UTC+3)
+    Получить текущее время по Москве (UTC+3) с учетом временной зоны
     """
-    # Московское время = UTC+3
-    moscow_offset = timedelta(hours=3)
-    utc_time = datetime.utcnow()
-    moscow_time = utc_time + moscow_offset
-    return moscow_time
+    try:
+        # Проверяем, доступна ли библиотека pytz
+        import pytz
+        # Используем правильную временную зону для Москвы
+        moscow_tz = pytz.timezone('Europe/Moscow')
+        # Получаем текущее время в UTC и конвертируем в московское
+        utc_time = datetime.utcnow().replace(tzinfo=pytz.UTC)
+        moscow_time = utc_time.astimezone(moscow_tz)
+        return moscow_time
+    except ImportError:
+        # Если pytz не установлен, используем фиксированное смещение UTC+3
+        moscow_offset = timedelta(hours=3)
+        utc_time = datetime.utcnow()
+        moscow_time = utc_time + moscow_offset
+        return moscow_time
 
 async def scheduler():
     """Run scheduled tasks"""
