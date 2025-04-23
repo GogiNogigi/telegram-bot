@@ -35,8 +35,16 @@ def inject_bot_username():
         # Если не удалось, используем стандартное имя
         pass
     
-    # Add current datetime    
-    now = datetime.now()
+    # Add current datetime in Moscow time zone
+    try:
+        # Если pytz доступен, используем его для получения московского времени
+        import pytz
+        moscow_tz = pytz.timezone('Europe/Moscow')
+        now = datetime.now(pytz.UTC).astimezone(moscow_tz)
+    except ImportError:
+        # Если pytz не доступен, используем смещение UTC+3
+        moscow_offset = timedelta(hours=3)
+        now = datetime.now() + moscow_offset
     
     # Utility function for template to format dates
     def format_date(dt, format_str='%Y-%m-%d'):
@@ -47,7 +55,9 @@ def inject_bot_username():
     return {
         'bot_username': bot_username,
         'now': now,
-        'format_date': format_date
+        'format_date': format_date,
+        'moscow_timezone': 'Europe/Moscow',
+        'moscow_utc_offset': '+3'
     }
 
 # Use file-based SQLite for persistence

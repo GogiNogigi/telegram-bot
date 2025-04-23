@@ -65,6 +65,37 @@ document.addEventListener('DOMContentLoaded', function() {
         setInterval(updateTime, 1000);
     }
     
+    // Moscow time live update
+    const moscowTimeDisplay = document.getElementById('moscowTime');
+    if (moscowTimeDisplay) {
+        function updateMoscowTime() {
+            // Moscow time zone offset is UTC+3
+            const now = new Date();
+            // Calculate Moscow time by adding the difference between local time zone and Moscow
+            const moscowOffset = 3 * 60; // Moscow UTC+3 in minutes
+            const localOffset = -now.getTimezoneOffset(); // Local offset in minutes
+            const offsetDiff = moscowOffset - localOffset; // Difference in minutes
+            
+            // Create Moscow time by adding the difference
+            const moscowTime = new Date(now.getTime() + offsetDiff * 60000);
+            
+            // Format the time: HH:MM:SS DD.MM.YYYY
+            const hours = moscowTime.getHours().toString().padStart(2, '0');
+            const minutes = moscowTime.getMinutes().toString().padStart(2, '0');
+            const seconds = moscowTime.getSeconds().toString().padStart(2, '0');
+            const day = moscowTime.getDate().toString().padStart(2, '0');
+            const month = (moscowTime.getMonth() + 1).toString().padStart(2, '0');
+            const year = moscowTime.getFullYear();
+            
+            const timeString = `${hours}:${minutes}:${seconds} ${day}.${month}.${year}`;
+            moscowTimeDisplay.textContent = timeString;
+        }
+        
+        // Update Moscow time every second
+        updateMoscowTime();
+        setInterval(updateMoscowTime, 1000);
+    }
+    
     // Test token button
     const testTokenBtn = document.getElementById('testTokenBtn');
     if (testTokenBtn) {
