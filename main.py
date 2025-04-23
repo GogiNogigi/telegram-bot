@@ -1,10 +1,11 @@
 import os
 import json
 import glob
+import time
 import psutil
 import zipfile
 import subprocess
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta, time as datetime_time
 from pathlib import Path
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file, Response
 from flask_sqlalchemy import SQLAlchemy
@@ -142,7 +143,7 @@ class BotSettings(db.Model):
     id = Column(Integer, primary_key=True)
     is_active = Column(Boolean, default=True)
     news_per_source = Column(Integer, default=3)
-    daily_send_time = Column(Time, default=time(8, 0))  # 8:00 AM по Москве
+    daily_send_time = Column(Time, default=func.time(8, 0))  # 8:00 AM по Москве
     telegram_token = Column(String(255), nullable=True)
     last_updated = Column(DateTime, default=func.now(), onupdate=func.now())
     
@@ -404,7 +405,7 @@ def update_settings():
         if send_time_str:
             try:
                 hours, minutes = map(int, send_time_str.split(':'))
-                bot_settings.daily_send_time = time(hours, minutes)
+                bot_settings.daily_send_time = datetime_time(hours, minutes)
             except:
                 pass  # Ignore invalid time format
         
@@ -428,7 +429,7 @@ def add_send_time():
         send_time_str = request.form.get('send_time')
         if send_time_str:
             hours, minutes = map(int, send_time_str.split(':'))
-            send_time = time(hours, minutes)
+            send_time = datetime_time(hours, minutes)
             
             # Check if time already exists
             existing = SendTime.query.filter(
@@ -602,6 +603,7 @@ def api_health():
     """API для проверки состояния сервиса (heartbeat)"""
     import os
     import json
+    import time
     from datetime import datetime
     
     # Проверка базы данных
@@ -620,13 +622,23 @@ def api_health():
     # Проверка наличия telegram_token
     token_exists = bool(bot_settings and bot_settings.telegram_token)
     
-    # Сбор информации о системе
-    uptime = None
+    # Сбор информации о системе с помощью psutil
+    system_info = {}
     try:
-        with open('/proc/uptime', 'r') as f:
-            uptime = float(f.readline().split()[0])
-    except:
-        pass
+        import psutil
+        system_info = {
+            "uptime": int(time.time() - psutil.boot_time()),
+            "cpu_percent": psutil.cpu_percent(interval=0.1),
+            "memory_percent": psutil.virtual_memory().percent,
+            "disk_percent": psutil.disk_usage('/').percent
+        }
+    except ImportError:
+        # Если psutil не доступен, используем старый метод
+        try:
+            with open('/proc/uptime', 'r') as f:
+                system_info["uptime"] = float(f.readline().split()[0])
+        except:
+            system_info["uptime"] = None
     
     # Проверка heartbeat файла если он существует
     heartbeat_data = {}
@@ -662,9 +674,7 @@ def api_health():
                 'active': bot_active,
                 'token_exists': token_exists
             },
-            'system': {
-                'uptime': uptime
-            },
+            'system': system_info,
             'stats': {
                 'subscribers': subscribers_count,
                 'news_items': news_count,
@@ -734,6 +744,383 @@ with app.app_context():
     
     # Initialize admin users
     initialize_admins()
+
+# Маршруты для мониторинга и просмотра логов
+@app.route('/monitor')
+def monitor():
+    """Страница мониторинга состояния системы"""
+    return render_template('monitor.html', title="Мониторинг системы")
+
+@app.route('/logs')
+def view_logs():
+    """Просмотр логов системы"""
+    log_type = request.args.get('log_type', 'all')
+    log_file = request.args.get('log_file', 'latest')
+    
+    # Определяем директорию с логами
+    logs_dir = os.path.join(os.path.dirname(__file__), 'logs')
+    if not os.path.exists(logs_dir):
+        os.makedirs(logs_dir)
+    
+    # Получаем список доступных лог-файлов
+    log_files = []
+    if log_type == 'all':
+        log_files = glob.glob(os.path.join(logs_dir, '*.log'))
+    elif log_type == 'web':
+        log_files = glob.glob(os.path.join(logs_dir, 'web*.log'))
+    elif log_type == 'bot':
+        log_files = glob.glob(os.path.join(logs_dir, 'bot*.log')) + glob.glob(os.path.join(logs_dir, 'telegram*.log'))
+    elif log_type == 'monitor':
+        log_files = glob.glob(os.path.join(logs_dir, 'monitor*.log')) + glob.glob(os.path.join(logs_dir, 'health*.log'))
+    
+    # Сортируем файлы по дате модификации (новые вначале)
+    log_files = sorted(log_files, key=os.path.getmtime, reverse=True)
+    log_files = [os.path.basename(f) for f in log_files]
+    
+    # Выбираем файл для отображения
+    if log_file == 'latest' and log_files:
+        log_file = log_files[0]
+    
+    log_content = ''
+    log_size = '0 bytes'
+    log_update_time = 'неизвестно'
+    can_clear = False
+    
+    if log_file and log_file in log_files:
+        file_path = os.path.join(logs_dir, log_file)
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                log_content = f.read()
+            
+            # Ограничиваем размер контента
+            if len(log_content) > 500000:  # ~500KB
+                log_content = "... [начало файла обрезано] ...\n\n" + log_content[-500000:]
+            
+            # Получаем информацию о файле
+            file_stat = os.stat(file_path)
+            log_size = f"{file_stat.st_size / 1024:.1f} KB"
+            log_update_time = datetime.fromtimestamp(file_stat.st_mtime).strftime('%Y-%m-%d %H:%M:%S')
+            
+            # Файл можно очистить только если он не системный
+            can_clear = not log_file.startswith(('system', 'gunicorn'))
+            
+        except Exception as e:
+            log_content = f"Ошибка при чтении файла: {str(e)}"
+    
+    log_file_display = log_file if log_file else "Лог-файл не выбран"
+    
+    return render_template(
+        'logs.html',
+        title="Просмотр логов",
+        log_type=log_type,
+        log_file=log_file,
+        log_file_display=log_file_display,
+        log_files=log_files,
+        log_content=log_content,
+        log_size=log_size,
+        log_update_time=log_update_time,
+        can_clear=can_clear
+    )
+
+@app.route('/api/get_log_files')
+def get_log_files():
+    """API для получения списка лог-файлов определенного типа"""
+    log_type = request.args.get('log_type', 'all')
+    
+    # Определяем директорию с логами
+    logs_dir = os.path.join(os.path.dirname(__file__), 'logs')
+    if not os.path.exists(logs_dir):
+        os.makedirs(logs_dir)
+    
+    # Получаем список доступных лог-файлов
+    log_files = []
+    if log_type == 'all':
+        log_files = glob.glob(os.path.join(logs_dir, '*.log'))
+    elif log_type == 'web':
+        log_files = glob.glob(os.path.join(logs_dir, 'web*.log'))
+    elif log_type == 'bot':
+        log_files = glob.glob(os.path.join(logs_dir, 'bot*.log')) + glob.glob(os.path.join(logs_dir, 'telegram*.log'))
+    elif log_type == 'monitor':
+        log_files = glob.glob(os.path.join(logs_dir, 'monitor*.log')) + glob.glob(os.path.join(logs_dir, 'health*.log'))
+    
+    # Сортируем файлы по дате модификации (новые вначале)
+    log_files = sorted(log_files, key=os.path.getmtime, reverse=True)
+    log_files = [os.path.basename(f) for f in log_files]
+    
+    return jsonify({
+        'success': True,
+        'files': log_files
+    })
+
+@app.route('/api/download_log')
+def download_log():
+    """API для скачивания лог-файла"""
+    log_type = request.args.get('log_type', 'all')
+    log_file = request.args.get('log_file', 'latest')
+    
+    # Определяем директорию с логами
+    logs_dir = os.path.join(os.path.dirname(__file__), 'logs')
+    
+    # Получаем список доступных лог-файлов
+    log_files = []
+    if log_type == 'all':
+        log_files = glob.glob(os.path.join(logs_dir, '*.log'))
+    elif log_type == 'web':
+        log_files = glob.glob(os.path.join(logs_dir, 'web*.log'))
+    elif log_type == 'bot':
+        log_files = glob.glob(os.path.join(logs_dir, 'bot*.log')) + glob.glob(os.path.join(logs_dir, 'telegram*.log'))
+    elif log_type == 'monitor':
+        log_files = glob.glob(os.path.join(logs_dir, 'monitor*.log')) + glob.glob(os.path.join(logs_dir, 'health*.log'))
+    
+    # Сортируем файлы по дате модификации (новые вначале)
+    log_files = sorted(log_files, key=os.path.getmtime, reverse=True)
+    
+    # Выбираем файл для скачивания
+    if log_file == 'latest' and log_files:
+        file_path = log_files[0]
+    else:
+        file_path = os.path.join(logs_dir, log_file)
+    
+    if os.path.exists(file_path) and os.path.isfile(file_path):
+        return send_file(
+            file_path,
+            as_attachment=True,
+            download_name=os.path.basename(file_path),
+            mimetype='text/plain'
+        )
+    else:
+        return jsonify({
+            'success': False,
+            'error': 'Файл не найден'
+        }), 404
+
+@app.route('/api/clear_log', methods=['POST'])
+def clear_log():
+    """API для очистки лог-файла"""
+    log_type = request.args.get('log_type', 'all')
+    log_file = request.args.get('log_file', 'latest')
+    
+    # Определяем директорию с логами
+    logs_dir = os.path.join(os.path.dirname(__file__), 'logs')
+    
+    # Получаем список доступных лог-файлов
+    log_files = []
+    if log_type == 'all':
+        log_files = glob.glob(os.path.join(logs_dir, '*.log'))
+    elif log_type == 'web':
+        log_files = glob.glob(os.path.join(logs_dir, 'web*.log'))
+    elif log_type == 'bot':
+        log_files = glob.glob(os.path.join(logs_dir, 'bot*.log')) + glob.glob(os.path.join(logs_dir, 'telegram*.log'))
+    elif log_type == 'monitor':
+        log_files = glob.glob(os.path.join(logs_dir, 'monitor*.log')) + glob.glob(os.path.join(logs_dir, 'health*.log'))
+    
+    # Сортируем файлы по дате модификации (новые вначале)
+    log_files = sorted(log_files, key=os.path.getmtime, reverse=True)
+    
+    # Выбираем файл для очистки
+    if log_file == 'latest' and log_files:
+        file_path = log_files[0]
+    else:
+        file_path = os.path.join(logs_dir, log_file)
+    
+    # Проверяем, что это не системный файл
+    if os.path.basename(file_path).startswith(('system', 'gunicorn')):
+        return jsonify({
+            'success': False,
+            'error': 'Невозможно очистить системный лог-файл'
+        }), 403
+    
+    try:
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            with open(file_path, 'w') as f:
+                f.write(f"Лог-файл очищен {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            
+            return jsonify({
+                'success': True
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Файл не найден'
+            }), 404
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/archive_logs')
+def archive_logs():
+    """API для архивации всех лог-файлов"""
+    # Определяем директорию с логами
+    logs_dir = os.path.join(os.path.dirname(__file__), 'logs')
+    
+    # Получаем список всех лог-файлов
+    log_files = glob.glob(os.path.join(logs_dir, '*.log'))
+    
+    if not log_files:
+        return jsonify({
+            'success': False,
+            'error': 'Лог-файлы не найдены'
+        }), 404
+    
+    # Создаем временный архив
+    archive_path = os.path.join(logs_dir, f'logs_archive_{datetime.now().strftime("%Y%m%d_%H%M%S")}.zip')
+    
+    try:
+        with zipfile.ZipFile(archive_path, 'w') as zipf:
+            for file in log_files:
+                zipf.write(file, os.path.basename(file))
+        
+        return send_file(
+            archive_path,
+            as_attachment=True,
+            download_name=os.path.basename(archive_path),
+            mimetype='application/zip'
+        )
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+    finally:
+        # Удаляем временный архив после отправки
+        if os.path.exists(archive_path):
+            try:
+                os.remove(archive_path)
+            except:
+                pass
+
+@app.route('/api/rotate_logs', methods=['POST'])
+def rotate_logs():
+    """API для ротации лог-файлов (удаление старых)"""
+    try:
+        data = request.get_json()
+        days = data.get('days', 7)
+        
+        if not isinstance(days, int) or days < 1:
+            return jsonify({
+                'success': False,
+                'error': 'Неверное количество дней'
+            }), 400
+        
+        # Определяем директорию с логами
+        logs_dir = os.path.join(os.path.dirname(__file__), 'logs')
+        
+        # Получаем список всех лог-файлов
+        log_files = glob.glob(os.path.join(logs_dir, '*.log'))
+        
+        deleted_count = 0
+        cutoff_time = time.time() - (days * 86400)  # N дней в секундах
+        
+        for file in log_files:
+            # Пропускаем системные файлы
+            if os.path.basename(file).startswith(('system', 'gunicorn')):
+                continue
+                
+            # Проверяем время модификации
+            mtime = os.path.getmtime(file)
+            if mtime < cutoff_time:
+                os.remove(file)
+                deleted_count += 1
+        
+        return jsonify({
+            'success': True,
+            'deleted_count': deleted_count
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/restart/<service>', methods=['POST'])
+def restart_service(service):
+    """API для перезапуска сервисов"""
+    if service not in ['web', 'bot']:
+        return jsonify({
+            'success': False,
+            'error': 'Неизвестный сервис'
+        }), 400
+    
+    try:
+        if service == 'web':
+            # Перезапуск веб-сервера
+            cmd = ["pkill", "-f", "gunicorn"]
+            subprocess.run(cmd, check=False)
+            return jsonify({
+                'success': True,
+                'message': 'Команда на перезапуск веб-сервера отправлена'
+            })
+        elif service == 'bot':
+            # Перезапуск Telegram бота
+            cmd = ["pkill", "-f", "run_telegram_bot.py"]
+            subprocess.run(cmd, check=False)
+            # Запуск бота 
+            import threading
+            def restart_bot_thread():
+                time.sleep(2)  # даем время на завершение
+                os.system("python run_telegram_bot.py &")
+            threading.Thread(target=restart_bot_thread).start()
+            return jsonify({
+                'success': True,
+                'message': 'Команда на перезапуск Telegram бота отправлена'
+            })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/start/<service>', methods=['POST'])
+def start_service(service):
+    """API для запуска сервисов"""
+    if service not in ['monitor']:
+        return jsonify({
+            'success': False,
+            'error': 'Неизвестный сервис'
+        }), 400
+    
+    try:
+        if service == 'monitor':
+            # Запуск мониторинга
+            import threading
+            def start_monitor_thread():
+                os.system("python health_check.py &")
+            threading.Thread(target=start_monitor_thread).start()
+            return jsonify({
+                'success': True,
+                'message': 'Мониторинг запущен'
+            })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/stop/<service>', methods=['POST'])
+def stop_service(service):
+    """API для остановки сервисов"""
+    if service not in ['monitor']:
+        return jsonify({
+            'success': False,
+            'error': 'Неизвестный сервис'
+        }), 400
+    
+    try:
+        if service == 'monitor':
+            # Остановка мониторинга
+            cmd = ["pkill", "-f", "health_check.py"]
+            subprocess.run(cmd, check=False)
+            return jsonify({
+                'success': True,
+                'message': 'Мониторинг остановлен'
+            })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 # Импорт модуля для запуска бота
 import bot_runner

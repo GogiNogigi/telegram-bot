@@ -48,6 +48,11 @@
                             <i class="fas fa-cog"></i> Настройки
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ 'active' if request.path == url_for('monitor') else '' }}" href="{{ url_for('monitor') }}">
+                            <i class="fas fa-heartbeat"></i> Мониторинг
+                        </a>
+                    </li>
                 </ul>
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
