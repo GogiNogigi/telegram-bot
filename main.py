@@ -634,5 +634,12 @@ with app.app_context():
     # Initialize admin users
     initialize_admins()
 
+# Импорт модуля для запуска бота
+import bot_runner
+
 if __name__ == '__main__':
+    # Запускаем Telegram бота в отдельном потоке
+    bot_runner.start_bot_thread()
+    
+    # Запуск Flask сервера
     app.run(host='0.0.0.0', port=5000, debug=True)
