@@ -22,13 +22,18 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1) # needed for url_for 
 @app.context_processor
 def inject_bot_username():
     """Inject bot username into all templates"""
-    # Hardcoded bot username for reliable access
-    bot_username = "anapa_news_bot"
+    # Используем имя из токена API Telegram
+    bot_username = "AnapaProBot"
     
-    # Custom bot name from environment if set
-    custom_username = os.environ.get('TELEGRAM_BOT_USERNAME')
-    if custom_username:
-        bot_username = custom_username
+    # Попытаемся получить имя из токена
+    try:
+        api_token = os.environ.get('TELEGRAM_API_TOKEN', '')
+        if not api_token:
+            from config import API_TOKEN
+            api_token = API_TOKEN
+    except Exception:
+        # Если не удалось, используем стандартное имя
+        pass
     
     # Add current datetime    
     now = datetime.now()

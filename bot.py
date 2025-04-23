@@ -246,6 +246,19 @@ token = get_telegram_token()
 bot = Bot(token=token)
 dp = Dispatcher()
 
+# Регистрация команд бота
+async def set_bot_commands():
+    """Зарегистрировать команды бота для удобства пользователей"""
+    await bot.set_my_commands([
+        BotCommand(command="start", description="Старт - начать работу с ботом"),
+        BotCommand(command="новости", description="Запрос новостей - получить свежие новости"),
+        BotCommand(command="подписаться", description="Начало подписки - подписаться на рассылку"),
+        BotCommand(command="отписаться", description="Отмена подписки - отписаться от рассылки"),
+        BotCommand(command="настройки", description="Настройки - посмотреть настройки"),
+        BotCommand(command="информация", description="Информация - сведения о боте"),
+        BotCommand(command="помощь", description="Помощь - список команд")
+    ])
+
 # Command handlers
 @dp.message(Command('start'))
 async def cmd_start(message: types.Message):
