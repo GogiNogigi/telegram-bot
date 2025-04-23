@@ -387,179 +387,218 @@ async def cmd_news(message: types.Message):
     if use_db:
         save_news_items(news_items)
     
-    # Show view options with inline keyboard
+    if not news_items:
+        await message.reply(
+            "🔍 К сожалению, новостей не найдено.",
+            parse_mode="HTML"
+        )
+        return
+    
+    # Форматируем новости и отправляем пользователю
+    formatted_news, news_with_images = format_news_message(news_items, with_images=False)
+    
+    # Добавляем сообщение о недоступных источниках, если есть ошибки
+    if has_errors:
+        formatted_news += "\n\n⚠️ <i>Некоторые источники новостей временно недоступны</i>"
+    
+    # Отправляем текстовые новости
     await message.reply(
-        f"📰 <b>Новости готовы!</b>\n"
-        f"Выберите формат отображения:",
-        parse_mode="HTML",
-        reply_markup=get_view_options_keyboard()
-    )
-    
-# Обработчики для callback-запросов от инлайн-кнопок
-@dp.callback_query(F.data.startswith("view:"))
-async def process_view_callback(callback: types.CallbackQuery):
-    """Обработчик выбора формата отображения новостей"""
-    # Извлекаем выбранный формат отображения
-    view_type = callback.data.split(':')[1]
-    
-    # Сообщаем Telegram, что уведомление обработано
-    await callback.answer()
-    
-    # Получаем новости
-    news_per_source = get_news_per_source()
-    news_items, has_errors = get_latest_news(news_per_source)
-    
-    if not news_items:
-        await callback.message.edit_text(
-            "🔍 К сожалению, новостей не найдено.",
-            parse_mode="HTML"
-        )
-        return
-    
-    if view_type == "text":
-        # Отображение только текста
-        formatted_news, _ = format_news_message(news_items, with_images=False)
-        
-        # Добавляем сообщение о недоступных источниках, если есть ошибки
-        if has_errors:
-            formatted_news += "\n\n⚠️ <i>Некоторые источники новостей временно недоступны</i>"
-            
-        # Обновляем сообщение с новостями
-        await callback.message.edit_text(
-            formatted_news,
-            parse_mode="HTML",
-            disable_web_page_preview=True
-        )
-        
-    elif view_type == "images":
-        # Отображение с изображениями
-        formatted_news, news_with_images = format_news_message(news_items, with_images=True)
-        
-        # Добавляем сообщение о недоступных источниках, если есть ошибки
-        if has_errors:
-            formatted_news += "\n\n⚠️ <i>Некоторые источники новостей временно недоступны</i>"
-        
-        # Обновляем сообщение с новостями
-        await callback.message.edit_text(
-            formatted_news,
-            parse_mode="HTML",
-            disable_web_page_preview=False
-        )
-        
-        # Отправляем изображения, если они есть
-        if news_with_images:
-            # Ограничиваем количество изображений до 5, чтобы не перегружать чат
-            images_to_send = news_with_images[:5]
-            
-            media_group = []
-            for item in images_to_send:
-                if item.get('image_url'):
-                    caption = f"<b>{item['title']}</b>\n\n🔗 <a href='{item['link']}'>Читать полностью</a>"
-                    media_group.append(InputMediaPhoto(
-                        media=item['image_url'],
-                        caption=caption,
-                        parse_mode="HTML"
-                    ))
-            
-            if media_group:
-                try:
-                    await callback.message.answer_media_group(media_group)
-                except Exception as e:
-                    logger.error(f"Error sending media group: {e}")
-                    # Fallback: отправляем сообщение о проблеме с изображениями
-                    await callback.message.answer(
-                        "⚠️ <i>Не удалось загрузить некоторые изображения. Просмотрите новости по ссылкам выше.</i>",
-                        parse_mode="HTML"
-                    )
-        
-    elif view_type == "categories":
-        # Отображение по категориям
-        # Скрываем предыдущую клавиатуру
-        await callback.message.edit_text(
-            "📂 <b>Выберите категорию новостей:</b>",
-            parse_mode="HTML",
-            reply_markup=get_categories_keyboard()
-        )
-        
-@dp.callback_query(F.data.startswith("category:"))
-async def process_category_callback(callback: types.CallbackQuery):
-    """Обработчик выбора категории новостей"""
-    # Извлекаем выбранную категорию
-    category = callback.data.split(':')[1]
-    
-    # Сообщаем Telegram, что уведомление обработано
-    await callback.answer()
-    
-    # Получаем новости
-    news_per_source = get_news_per_source()
-    news_items, has_errors = get_latest_news(news_per_source)
-    
-    if not news_items:
-        await callback.message.edit_text(
-            "🔍 К сожалению, новостей не найдено.",
-            parse_mode="HTML"
-        )
-        return
-    
-    # Если выбрана опция "Все новости"
-    if category == "all":
-        formatted_news, _ = format_news_message(news_items, with_images=False)
-        
-        # Добавляем сообщение о недоступных источниках, если есть ошибки
-        if has_errors:
-            formatted_news += "\n\n⚠️ <i>Некоторые источники новостей временно недоступны</i>"
-            
-        # Обновляем сообщение с новостями
-        await callback.message.edit_text(
-            formatted_news,
-            parse_mode="HTML",
-            disable_web_page_preview=True
-        )
-        return
-    
-    # Группируем новости по категориям
-    categorized_news = get_categorized_news(news_items)
-    
-    # Проверяем, есть ли новости в выбранной категории
-    if category not in categorized_news:
-        await callback.message.edit_text(
-            f"🔍 В категории «{category}» новостей не найдено. Выберите другую категорию:",
-            parse_mode="HTML",
-            reply_markup=get_categories_keyboard()
-        )
-        return
-    
-    # Форматируем новости выбранной категории
-    category_news = categorized_news[category]
-    formatted_news, _ = format_news_message(category_news, with_images=False)
-    
-    # Добавляем заголовок категории
-    category_icon = {
-        "Общество": "🌍",
-        "Экономика": "💼",
-        "Политика": "🏛",
-        "Происшествия": "🚨",
-        "Спорт": "⚽",
-        "Технологии": "💻",
-        "Развлечения": "🎬",
-        "Другое": "📋"
-    }.get(category, "📂")
-    
-    category_header = f"{category_icon} <b>НОВОСТИ КАТЕГОРИИ «{category.upper()}»</b>\n\n"
-    formatted_news = category_header + formatted_news
-    
-    # Создаем клавиатуру для возврата к выбору категорий
-    builder = InlineKeyboardBuilder()
-    builder.button(text="« Назад к категориям", callback_data="view:categories")
-    builder.button(text="📰 Все новости", callback_data="category:all")
-    builder.adjust(1)
-    
-    await callback.message.edit_text(
         formatted_news,
         parse_mode="HTML",
-        disable_web_page_preview=True,
-        reply_markup=builder.as_markup()
+        disable_web_page_preview=True
     )
+    
+    # Отправляем несколько изображений, если они есть
+    if news_with_images:
+        # Ограничиваем количество изображений
+        images_to_send = news_with_images[:3]
+        
+        media_group = []
+        for item in images_to_send:
+            if item.get('image_url'):
+                caption = f"<b>{item['title']}</b>\n\n🔗 <a href='{item['link']}'>Читать полностью</a>"
+                media_group.append(InputMediaPhoto(
+                    media=item['image_url'],
+                    caption=caption,
+                    parse_mode="HTML"
+                ))
+        
+        if media_group:
+            try:
+                await message.answer_media_group(media=media_group)
+            except Exception as e:
+                logger.error(f"Error sending media group: {e}")
+                # Fallback: отправляем сообщение о проблеме с изображениями
+                await message.answer(
+                    "⚠️ <i>Не удалось загрузить некоторые изображения. Просмотрите новости по ссылкам выше.</i>",
+                    parse_mode="HTML"
+                )
+    
+# Закомментированные обработчики для callback-запросов от инлайн-кнопок
+# @dp.callback_query(F.data.startswith("view:"))
+# async def process_view_callback(callback: types.CallbackQuery):
+#     """Обработчик выбора формата отображения новостей"""
+#     # Извлекаем выбранный формат отображения
+#     view_type = callback.data.split(':')[1]
+#     
+#     # Сообщаем Telegram, что уведомление обработано
+#     await callback.answer()
+#     
+#     # Получаем новости
+#     news_per_source = get_news_per_source()
+#     news_items, has_errors = get_latest_news(news_per_source)
+#     
+#     if not news_items:
+#         await callback.message.edit_text(
+#             "🔍 К сожалению, новостей не найдено.",
+#             parse_mode="HTML"
+#         )
+#         return
+#     
+#     if view_type == "text":
+#         # Отображение только текста
+#         formatted_news, _ = format_news_message(news_items, with_images=False)
+#         
+#         # Добавляем сообщение о недоступных источниках, если есть ошибки
+#         if has_errors:
+#             formatted_news += "\n\n⚠️ <i>Некоторые источники новостей временно недоступны</i>"
+#             
+#         # Обновляем сообщение с новостями
+#         await callback.message.edit_text(
+#             formatted_news,
+#             parse_mode="HTML",
+#             disable_web_page_preview=True
+#         )
+#         
+#     elif view_type == "images":
+#         # Отображение с изображениями
+#         formatted_news, news_with_images = format_news_message(news_items, with_images=True)
+#         
+#         # Добавляем сообщение о недоступных источниках, если есть ошибки
+#         if has_errors:
+#             formatted_news += "\n\n⚠️ <i>Некоторые источники новостей временно недоступны</i>"
+#         
+#         # Обновляем сообщение с новостями
+#         await callback.message.edit_text(
+#             formatted_news,
+#             parse_mode="HTML",
+#             disable_web_page_preview=False
+#         )
+#         
+#         # Отправляем изображения, если они есть
+#         if news_with_images:
+#             # Ограничиваем количество изображений до 5, чтобы не перегружать чат
+#             images_to_send = news_with_images[:5]
+#             
+#             media_group = []
+#             for item in images_to_send:
+#                 if item.get('image_url'):
+#                     caption = f"<b>{item['title']}</b>\n\n🔗 <a href='{item['link']}'>Читать полностью</a>"
+#                     media_group.append(InputMediaPhoto(
+#                         media=item['image_url'],
+#                         caption=caption,
+#                         parse_mode="HTML"
+#                     ))
+#             
+#             if media_group:
+#                 try:
+#                     await callback.message.answer_media_group(media_group)
+#                 except Exception as e:
+#                     logger.error(f"Error sending media group: {e}")
+#                     # Fallback: отправляем сообщение о проблеме с изображениями
+#                     await callback.message.answer(
+#                         "⚠️ <i>Не удалось загрузить некоторые изображения. Просмотрите новости по ссылкам выше.</i>",
+#                         parse_mode="HTML"
+#                     )
+#         
+#     elif view_type == "categories":
+#         # Отображение по категориям
+#         # Скрываем предыдущую клавиатуру
+#         await callback.message.edit_text(
+#             "📂 <b>Выберите категорию новостей:</b>",
+#             parse_mode="HTML",
+#             reply_markup=get_categories_keyboard()
+#         )
+#         
+# @dp.callback_query(F.data.startswith("category:"))
+# async def process_category_callback(callback: types.CallbackQuery):
+#     """Обработчик выбора категории новостей"""
+#     # Извлекаем выбранную категорию
+#     category = callback.data.split(':')[1]
+#     
+#     # Сообщаем Telegram, что уведомление обработано
+#     await callback.answer()
+#     
+#     # Получаем новости
+#     news_per_source = get_news_per_source()
+#     news_items, has_errors = get_latest_news(news_per_source)
+#     
+#     if not news_items:
+#         await callback.message.edit_text(
+#             "🔍 К сожалению, новостей не найдено.",
+#             parse_mode="HTML"
+#         )
+#         return
+#     
+#     # Если выбрана опция "Все новости"
+#     if category == "all":
+#         formatted_news, _ = format_news_message(news_items, with_images=False)
+#         
+#         # Добавляем сообщение о недоступных источниках, если есть ошибки
+#         if has_errors:
+#             formatted_news += "\n\n⚠️ <i>Некоторые источники новостей временно недоступны</i>"
+#             
+#         # Обновляем сообщение с новостями
+#         await callback.message.edit_text(
+#             formatted_news,
+#             parse_mode="HTML",
+#             disable_web_page_preview=True
+#         )
+#         return
+#     
+#     # Группируем новости по категориям
+#     categorized_news = get_categorized_news(news_items)
+#     
+#     # Проверяем, есть ли новости в выбранной категории
+#     if category not in categorized_news:
+#         await callback.message.edit_text(
+#             f"🔍 В категории «{category}» новостей не найдено. Выберите другую категорию:",
+#             parse_mode="HTML",
+#             reply_markup=get_categories_keyboard()
+#         )
+#         return
+#     
+#     # Форматируем новости выбранной категории
+#     category_news = categorized_news[category]
+#     formatted_news, _ = format_news_message(category_news, with_images=False)
+#     
+#     # Добавляем заголовок категории
+#     category_icon = {
+#         "Общество": "🌍",
+#         "Экономика": "💼",
+#         "Политика": "🏛",
+#         "Происшествия": "🚨",
+#         "Спорт": "⚽",
+#         "Технологии": "💻",
+#         "Развлечения": "🎬",
+#         "Другое": "📋"
+#     }.get(category, "📂")
+#     
+#     category_header = f"{category_icon} <b>НОВОСТИ КАТЕГОРИИ «{category.upper()}»</b>\n\n"
+#     formatted_news = category_header + formatted_news
+#     
+#     # Создаем клавиатуру для возврата к выбору категорий
+#     builder = InlineKeyboardBuilder()
+#     builder.button(text="« Назад к категориям", callback_data="view:categories")
+#     builder.button(text="📰 Все новости", callback_data="category:all")
+#     builder.adjust(1)
+#     
+#     await callback.message.edit_text(
+#         formatted_news,
+#         parse_mode="HTML",
+#         disable_web_page_preview=True,
+#         reply_markup=builder.as_markup()
+#     )
 
 @dp.message(Command('подписаться', 'subscribe'))
 @dp.message(F.text == "✅ Подписаться")
