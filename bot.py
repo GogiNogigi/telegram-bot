@@ -70,17 +70,30 @@ try:
     def get_all_send_times():
         """Get all active send times from the database (all times in Moscow timezone)"""
         with app.app_context():
-            # Get main send time
-            settings = BotSettings.query.first()
-            main_time = time(8, 0)  # Default - 8:00 AM Moscow time
-            if settings and settings.daily_send_time:
-                main_time = settings.daily_send_time
-                
-            # Get additional send times
-            additional_times = [st.send_time for st in SendTime.query.filter_by(is_active=True).all()]
+            # Фиксированные времена рассылки по умолчанию: 8:00, 12:00, 18:00
+            hardcoded_times = [time(8, 0), time(12, 0), time(18, 0)]
             
-            # Combine all times
-            all_times = [main_time] + additional_times
+            try:
+                # Get main send time from settings
+                settings = BotSettings.query.first()
+                main_time = time(8, 0)  # Default - 8:00 AM Moscow time
+                if settings and settings.daily_send_time:
+                    main_time = settings.daily_send_time
+                    
+                # Get additional send times
+                additional_times = [st.send_time for st in SendTime.query.filter_by(is_active=True).all()]
+                
+                # Combine all times
+                all_times = [main_time] + additional_times
+                
+                # Проверяем, получили ли мы хотя бы одно время
+                if not all_times:
+                    logger.warning("No send times found in database, using hardcoded times")
+                    all_times = hardcoded_times
+            except Exception as e:
+                logger.error(f"Error getting send times from database: {e}")
+                # В случае ошибки используем фиксированные времена
+                all_times = hardcoded_times
             
             # Log all times for debugging
             time_strings = [t.strftime('%H:%M') for t in all_times]
@@ -186,7 +199,8 @@ except ImportError:
         return time(8, 0)  # Default to 8:00 AM by Moscow time
         
     def get_all_send_times():
-        return [time(8, 0)]  # Default only main time
+        # Возвращаем фиксированные времена для режима без БД
+        return [time(8, 0), time(12, 0), time(18, 0)]  # Фиксированные времена: 8:00, 12:00, 18:00
     
     def save_news_items(news_items):
         pass  # No database to save to
@@ -885,15 +899,16 @@ async def scheduler():
                 current_minutes = now.hour * 60 + now.minute
                 target_minutes = send_time.hour * 60 + send_time.minute
                 
-                # Детальное логирование для отладки
-                logger.info(f"Checking time: current={now.hour}:{now.minute} ({current_minutes} min), target={send_time.hour}:{send_time.minute} ({target_minutes} min)")
-                
-                # Вычисляем разницу во времени
+                # Детальное логирование для отладки - но только когда приближаемся ко времени отправки
                 time_diff = abs(current_minutes - target_minutes)
                 
                 # Проверка на пересечение полуночи
                 if time_diff > 720:  # больше 12 часов - возможно пересечение дня
                     time_diff = 1440 - time_diff  # 24 часа в минутах
+                
+                # Логирование только если мы близко ко времени или каждые 30 минут
+                if time_diff <= 5 or now.minute % 30 == 0:
+                    logger.info(f"Checking time: current={now.hour}:{now.minute} ({current_minutes} min), target={send_time.hour}:{send_time.minute} ({target_minutes} min), diff={time_diff} min")
                 
                 # Логируем когда приближаемся к времени отправки (в пределах 3 минут)
                 if time_diff <= 3:
