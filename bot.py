@@ -59,28 +59,33 @@ try:
     
     # Function to get daily send time
     def get_daily_send_time():
-        """Get daily send time setting"""
+        """Get daily send time setting (Moscow time)"""
         with app.app_context():
             settings = BotSettings.query.first()
             if settings and settings.daily_send_time:
                 return settings.daily_send_time
-            return time(8, 0)  # Default to 8:00 AM
+            return time(8, 0)  # Default to 8:00 AM Moscow time
             
     # Function to get all active send times
     def get_all_send_times():
-        """Get all active send times from the database"""
+        """Get all active send times from the database (all times in Moscow timezone)"""
         with app.app_context():
             # Get main send time
             settings = BotSettings.query.first()
-            main_time = time(8, 0)  # Default
+            main_time = time(8, 0)  # Default - 8:00 AM Moscow time
             if settings and settings.daily_send_time:
                 main_time = settings.daily_send_time
                 
             # Get additional send times
             additional_times = [st.send_time for st in SendTime.query.filter_by(is_active=True).all()]
             
-            # Combine all times
+            # Combine all times and ensure they are correctly interpreted as Moscow time
             all_times = [main_time] + additional_times
+            
+            # Log all times for debugging
+            time_strings = [t.strftime('%H:%M') for t in all_times]
+            logger.info(f"Scheduled send times (Moscow): {', '.join(time_strings)}")
+            
             return all_times
     
     # Function to add subscriber using Flask models
