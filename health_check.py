@@ -57,9 +57,7 @@ def signal_handler(sig, frame):
 def get_telegram_token():
     """Получить токен Telegram бота из базы данных"""
     try:
-        import sqlite3
-        from sqlalchemy import create_engine, text
-        from sqlalchemy.orm import sessionmaker
+        import psycopg2
         import os
         
         # Определяем URL подключения к базе данных из переменной окружения
@@ -69,13 +67,16 @@ def get_telegram_token():
             return None
         
         # Создаем подключение к базе данных
-        engine = create_engine(database_url)
-        Session = sessionmaker(bind=engine)
-        session = Session()
+        conn = psycopg2.connect(database_url)
+        cur = conn.cursor()
         
         # Получаем токен из таблицы настроек
-        result = session.execute(text("SELECT telegram_token FROM bot_settings LIMIT 1")).fetchone()
-        session.close()
+        cur.execute("SELECT telegram_token FROM bot_settings LIMIT 1")
+        result = cur.fetchone()
+        
+        # Закрываем соединение
+        cur.close()
+        conn.close()
         
         if result and result[0]:
             return result[0]
@@ -117,19 +118,57 @@ def check_web_service():
     global last_web_restart, web_restart_attempts
     
     try:
-        # Отправляем GET-запрос на главную страницу
-        response = requests.get(WEB_URL, timeout=10)
+        # Отправляем GET-запрос на эндпоинт проверки здоровья
+        health_url = f"{WEB_URL}/api/health"
+        response = requests.get(health_url, timeout=10)
         
         # Проверяем статус ответа
         if response.status_code == 200:
-            logger.info(f"Веб-интерфейс доступен, статус {response.status_code}")
-            update_heartbeat('web', 'healthy', {
-                'status_code': response.status_code,
-                'response_time': response.elapsed.total_seconds()
-            })
-            # Сбрасываем счетчик попыток перезапуска при успешной проверке
-            web_restart_attempts = 0
-            return True
+            try:
+                # Анализируем ответ API
+                health_data = response.json()
+                
+                # Получаем статус компонентов
+                db_status = health_data.get('components', {}).get('database', {}).get('status', 'unknown')
+                bot_status = 'healthy' if health_data.get('components', {}).get('bot', {}).get('active', False) else 'warning'
+                stats = health_data.get('components', {}).get('stats', {})
+                
+                # Проверяем общий статус
+                overall_status = 'healthy'
+                components_status = {}
+                
+                if db_status != 'healthy':
+                    overall_status = 'warning'
+                    components_status['database'] = db_status
+                
+                if bot_status != 'healthy':
+                    overall_status = 'warning'
+                    components_status['bot'] = bot_status
+                
+                # Обновляем heartbeat с детальной информацией
+                update_heartbeat('web', overall_status, {
+                    'status_code': response.status_code,
+                    'response_time': response.elapsed.total_seconds(),
+                    'components': components_status,
+                    'stats': stats
+                })
+                
+                logger.info(f"Веб-интерфейс доступен, статус: {overall_status}")
+                
+                if overall_status == 'healthy':
+                    # Сбрасываем счетчик попыток перезапуска при успешной проверке
+                    web_restart_attempts = 0
+                
+                return overall_status == 'healthy'
+            except ValueError as e:
+                # Ошибка при разборе JSON
+                logger.warning(f"Ошибка при разборе ответа API: {e}")
+                update_heartbeat('web', 'warning', {
+                    'status_code': response.status_code,
+                    'error': f"Ошибка JSON: {str(e)}",
+                    'response_time': response.elapsed.total_seconds()
+                })
+                return False
         else:
             logger.warning(f"Веб-интерфейс вернул неожиданный статус: {response.status_code}")
             update_heartbeat('web', 'warning', {

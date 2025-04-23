@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5 mb-4">
+                <i class="fas fa-file-alt text-info"></i> Просмотр логов
+            </h1>
+            <p class="lead">
+                Просмотр логов системы для диагностики проблем.
+            </p>
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <a href="{{ url_for('monitor') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Вернуться к мониторингу
+                    </a>
+                </div>
+                <div>
+                    <form class="d-flex" id="logForm">
+                        <select class="form-select me-2" id="logType" name="log_type">
+                            <option value="all" {% if log_type == 'all' %}selected{% endif %}>Все логи</option>
+                            <option value="web" {% if log_type == 'web' %}selected{% endif %}>Веб-сервер</option>
+                            <option value="bot" {% if log_type == 'bot' %}selected{% endif %}>Telegram бот</option>
+                            <option value="monitor" {% if log_type == 'monitor' %}selected{% endif %}>Мониторинг</option>
+                        </select>
+                        <select class="form-select me-2" id="logFile" name="log_file">
+                            <option value="latest">Последний файл</option>
+                            {% for file in log_files %}
+                                <option value="{{ file }}" {% if log_file == file %}selected{% endif %}>{{ file }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Показать
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-file-code"></i> 
+                        {{ log_file_display }}
+                    </h3>
+                    <div>
+                        <button class="btn btn-sm btn-outline-secondary" id="refreshLog">
+                            <i class="fas fa-sync-alt"></i> Обновить
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" id="downloadLog">
+                            <i class="fas fa-download"></i> Скачать
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" id="clearLog" 
+                                {% if not can_clear %}disabled{% endif %}>
+                            <i class="fas fa-trash"></i> Очистить
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if log_content %}
+                        <div class="log-container bg-dark text-light p-3" style="height: 600px; overflow-y: auto; font-family: monospace;">
+                            <pre id="logContent">{{ log_content }}</pre>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info m-3">
+                            Лог-файл пуст или не найден.
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <small class="text-muted">Размер файла: {{ log_size }}</small>
+                        <small class="text-muted">Последнее обновление: {{ log_update_time }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-info-circle"></i> Управление логами
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Архивация логов</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p>Создать архив всех лог-файлов для скачивания</p>
+                                    <div class="d-grid">
+                                        <button class="btn btn-outline-primary" id="archiveLogs">
+                                            <i class="fas fa-file-archive"></i> Архивировать все логи
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Ротация логов</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p>Очистить старые логи, оставив только файлы за последние дни</p>
+                                    <div class="input-group mb-3">
+                                        <input type="number" class="form-control" id="daysToKeep" min="1" value="7">
+                                        <span class="input-group-text">дней</span>
+                                        <button class="btn btn-outline-warning" id="rotateLogs">
+                                            <i class="fas fa-broom"></i> Ротация логов
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Обработчик изменения типа лога
+        document.getElementById('logType').addEventListener('change', function() {
+            fetchLogFiles(this.value);
+        });
+        
+        // Обработчик формы
+        document.getElementById('logForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const logType = document.getElementById('logType').value;
+            const logFile = document.getElementById('logFile').value;
+            
+            window.location.href = `{{ url_for('view_logs') }}?log_type=${logType}&log_file=${logFile}`;
+        });
+        
+        // Обновление лога
+        document.getElementById('refreshLog').addEventListener('click', function() {
+            window.location.reload();
+        });
+        
+        // Скачивание лога
+        document.getElementById('downloadLog').addEventListener('click', function() {
+            const logType = document.getElementById('logType').value;
+            const logFile = document.getElementById('logFile').value;
+            
+            window.location.href = `{{ url_for('download_log') }}?log_type=${logType}&log_file=${logFile}`;
+        });
+        
+        // Очистка лога
+        document.getElementById('clearLog').addEventListener('click', function() {
+            if (confirm('Вы уверены, что хотите очистить этот лог-файл?')) {
+                const logType = document.getElementById('logType').value;
+                const logFile = document.getElementById('logFile').value;
+                
+                fetch(`{{ url_for('clear_log') }}?log_type=${logType}&log_file=${logFile}`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Лог-файл успешно очищен');
+                        window.location.reload();
+                    } else {
+                        alert(`Ошибка: ${data.error}`);
+                    }
+                })
+                .catch(error => {
+                    alert(`Ошибка: ${error.message}`);
+                });
+            }
+        });
+        
+        // Архивация логов
+        document.getElementById('archiveLogs').addEventListener('click', function() {
+            window.location.href = "{{ url_for('archive_logs') }}";
+        });
+        
+        // Ротация логов
+        document.getElementById('rotateLogs').addEventListener('click', function() {
+            const days = document.getElementById('daysToKeep').value;
+            
+            if (confirm(`Вы уверены, что хотите удалить все логи старше ${days} дней?`)) {
+                fetch("{{ url_for('rotate_logs') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ days: parseInt(days) })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`Удалено ${data.deleted_count} лог-файлов`);
+                        window.location.reload();
+                    } else {
+                        alert(`Ошибка: ${data.error}`);
+                    }
+                })
+                .catch(error => {
+                    alert(`Ошибка: ${error.message}`);
+                });
+            }
+        });
+        
+        // Прокрутка до конца лог-файла при загрузке
+        const logContainer = document.querySelector('.log-container');
+        if (logContainer) {
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+    });
+    
+    // Получение списка лог-файлов для выбранного типа
+    function fetchLogFiles(logType) {
+        fetch(`{{ url_for('get_log_files') }}?log_type=${logType}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const selectElement = document.getElementById('logFile');
+                    
+                    // Очищаем текущие опции
+                    selectElement.innerHTML = '<option value="latest">Последний файл</option>';
+                    
+                    // Добавляем новые опции
+                    data.files.forEach(file => {
+                        const option = document.createElement('option');
+                        option.value = file;
+                        option.textContent = file;
+                        selectElement.appendChild(option);
+                    });
+                } else {
+                    alert(`Ошибка: ${data.error}`);
+                }
+            })
+            .catch(error => {
+                alert(`Ошибка: ${error.message}`);
+            });
+    }
+</script>
+{% endblock %}
