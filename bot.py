@@ -917,8 +917,20 @@ async def scheduler():
                 # Проверяем, не посылали ли мы уже сегодня в это время
                 today_key = f"{moscow_datetime.date()}_{time_key}"
                 
-                if time_diff <= 1 and today_key not in last_check_times:
+                # Изменение логики: если текущее время больше, чем время рассылки, и оно в пределах 15 минут,
+                # и мы еще не отправляли новости сегодня в это время
+                current_hour = now.hour
+                current_minute = now.minute
+                target_hour = send_time.hour
+                target_minute = send_time.minute
+                
+                # Время отправки прошло, но прошло не более 15 минут или мы не отправляли сегодня
+                past_target = (current_hour > target_hour or 
+                              (current_hour == target_hour and current_minute >= target_minute))
+                
+                if past_target and time_diff <= 15 and today_key not in last_check_times:
                     logger.info(f"!!! Scheduled news delivery triggered at {now.strftime('%H:%M')} MSK time for target {time_key} !!!")
+                    logger.info(f"Current: {current_hour}:{current_minute}, Target: {target_hour}:{target_minute}, Diff: {time_diff} min")
                     
                     # Сохраняем информацию о том, что мы обработали это время сегодня
                     last_check_times[today_key] = moscow_datetime
