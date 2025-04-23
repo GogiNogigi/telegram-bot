@@ -66,9 +66,9 @@ def sanitize_html(text: str) -> str:
     return text
 
 def get_feed_entries(feed_url: str, max_entries: int = 3) -> List[Dict[str, Any]]:
-    """Get entries from a specific RSS feed"""
+    """Get entries from a specific RSS feed including image preview if available"""
     try:
-        # Добавляем User-Agent в запрос, чтобы избежать блокировки
+        # Add User-Agent to avoid blocks
         headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36'}
         feed = feedparser.parse(feed_url, request_headers=headers)
         
@@ -78,19 +78,19 @@ def get_feed_entries(feed_url: str, max_entries: int = 3) -> List[Dict[str, Any]
             
         if hasattr(feed, 'bozo_exception') and feed.bozo:
             logger.warning(f"Partial error parsing feed {feed_url}: {feed.bozo_exception}")
-            # Продолжаем, если есть хоть какие-то entries
+            # Continue if there are still some entries
             if not feed.entries:
                 return []
         
         entries = []
         
-        # Определяем имя источника (из feed или из URL)
+        # Determine source name (from feed or URL)
         source_name = None
         if hasattr(feed, 'feed') and hasattr(feed.feed, 'title'):
             source_name = feed.feed.title
         if not source_name:
             try:
-                # Извлекаем имя источника из URL
+                # Extract source name from URL
                 if "lenta.ru" in feed_url:
                     source_name = "Лента.ру"
                 elif "news.mail.ru" in feed_url:
@@ -98,7 +98,7 @@ def get_feed_entries(feed_url: str, max_entries: int = 3) -> List[Dict[str, Any]
                 elif "russian.rt.com" in feed_url:
                     source_name = "RT на русском"
                 else:
-                    # Берём домен из URL
+                    # Get domain from URL
                     domain = feed_url.split('//')[-1].split('/')[0]
                     source_name = domain
             except:
@@ -111,43 +111,51 @@ def get_feed_entries(feed_url: str, max_entries: int = 3) -> List[Dict[str, Any]
             # Extract required fields with fallbacks
             title = getattr(entry, 'title', 'Без заголовка')
             
-            # Получаем URL новости
+            # Get news URL
             link = getattr(entry, 'link', '#')
             if not link or link == '#':
                 link = getattr(entry, 'id', '#')
             
-            # Ищем дату публикации в разных полях
+            # Look for publication date in different fields
             pub_date = None
             date_fields = ['published', 'pubDate', 'updated', 'date']
             for field in date_fields:
                 if hasattr(entry, field) and getattr(entry, field):
                     try:
-                        # Пытаемся использовать parsed-варианты полей для даты
+                        # Try to use parsed variants of date fields
                         parsed_field = f"{field}_parsed"
                         if hasattr(entry, parsed_field) and getattr(entry, parsed_field):
                             time_struct = getattr(entry, parsed_field)
                             pub_date = time.strftime("%d.%m.%Y %H:%M", time_struct)
                             break
-                        # Если нет parsed-поля, пытаемся распарсить строку
+                        # If no parsed field, try to parse the string
                         date_str = getattr(entry, field)
                         if date_str:
-                            # Преобразуем для локализованного отображения
-                            dt = datetime.strptime(date_str[:25], "%a, %d %b %Y %H:%M:%S")
-                            pub_date = dt.strftime("%d.%m.%Y %H:%M")
+                            # Convert for localized display
+                            try:
+                                dt = datetime.strptime(date_str[:25], "%a, %d %b %Y %H:%M:%S")
+                                pub_date = dt.strftime("%d.%m.%Y %H:%M")
+                            except ValueError:
+                                # Try alternative format
+                                try:
+                                    dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+                                    pub_date = dt.strftime("%d.%m.%Y %H:%M")
+                                except:
+                                    pass
                             break
                     except Exception as e:
                         logger.debug(f"Couldn't parse date: {e}")
                         continue
             
-            # Ищем описание новости в разных полях
+            # Find news description in different fields
             summary = None
             summary_fields = ['summary', 'description', 'content']
             for field in summary_fields:
                 if hasattr(entry, field) and getattr(entry, field):
                     content = getattr(entry, field)
-                    # Проверка для различных форматов полей в RSS-фидах
+                    # Check for different formats in RSS feeds
                     if isinstance(content, list) and content:
-                        # Некоторые фиды (например, Atom) хранят контент в списке словарей
+                        # Some feeds (like Atom) store content in a list of dictionaries
                         for item in content:
                             if isinstance(item, dict) and 'value' in item:
                                 summary = item['value']
@@ -158,21 +166,53 @@ def get_feed_entries(feed_url: str, max_entries: int = 3) -> List[Dict[str, Any]
                     if summary:
                         break
             
-            # Если описание не найдено - используем заголовок
+            # If no description found - use title
             if not summary:
                 summary = title
                 
-            # Очистка HTML и ограничение длины
+            # Clean HTML and limit length
             summary = sanitize_html(summary)
             if len(summary) > 300:
                 summary = summary[:297] + "..."
+            
+            # Extract image URL if available
+            image_url = None
+            
+            # Try to find image in media content
+            if hasattr(entry, 'media_content') and entry.media_content:
+                for media in entry.media_content:
+                    if isinstance(media, dict) and media.get('medium') == 'image' and 'url' in media:
+                        image_url = media['url']
+                        break
+            
+            # Look for image in media thumbnail
+            if not image_url and hasattr(entry, 'media_thumbnail') and entry.media_thumbnail:
+                for media in entry.media_thumbnail:
+                    if isinstance(media, dict) and 'url' in media:
+                        image_url = media['url']
+                        break
+            
+            # Look for image in enclosures
+            if not image_url and hasattr(entry, 'enclosures') and entry.enclosures:
+                for enclosure in entry.enclosures:
+                    if isinstance(enclosure, dict) and enclosure.get('type', '').startswith('image/') and 'href' in enclosure:
+                        image_url = enclosure['href']
+                        break
+            
+            # Try to extract image from the content
+            if not image_url and summary:
+                # Simple regex to find the first image tag
+                img_matches = re.findall(r'<img[^>]+src="([^">]+)"', summary)
+                if img_matches:
+                    image_url = img_matches[0]
             
             entries.append({
                 'title': title,
                 'link': link,
                 'pub_date': pub_date,
                 'summary': summary,
-                'source': source_name
+                'source': source_name,
+                'image_url': image_url
             })
             
         return entries
@@ -209,10 +249,21 @@ def get_latest_news(max_per_feed: int = 3) -> Tuple[List[Dict[str, Any]], bool]:
         logger.error(f"Error getting latest news: {e}")
         return [], True
 
-def format_news_message(news_items: List[Dict[str, Any]]) -> str:
-    """Format news items into a Telegram message"""
+def format_news_message(news_items: List[Dict[str, Any]], with_images: bool = False) -> Tuple[str, List[Dict[str, Any]]]:
+    """
+    Format news items into a Telegram message
+    
+    Args:
+        news_items: List of news items to format
+        with_images: Flag to indicate if images should be included
+        
+    Returns:
+        Tuple containing:
+            - Formatted text message
+            - List of news items with images that can be sent as media
+    """
     if not news_items:
-        return "🔍 К сожалению, новостей не найдено."
+        return "🔍 К сожалению, новостей не найдено.", []
     
     # Группируем новости по источникам
     news_by_source = {}
@@ -223,6 +274,7 @@ def format_news_message(news_items: List[Dict[str, Any]]) -> str:
         news_by_source[source].append(item)
     
     all_parts = []
+    news_with_images = []
     
     # Добавляем заголовок с текущим временем по Москве
     try:
@@ -261,12 +313,23 @@ def format_news_message(news_items: List[Dict[str, Any]]) -> str:
                 summary = summary[:147] + "..."
             
             # Форматируем новость
+            icon = "🔵" if source.lower() in ["лента.ру", "ria.ru", "интерфакс"] else "📰"
             news_item = (
-                f"📰 <b>{title}</b>{pub_date}\n"
+                f"{icon} <b>{title}</b>{pub_date}\n"
                 f"{summary}\n"
                 f"🔗 <a href='{link}'>Читать полностью</a>"
             )
             all_parts.append(news_item)
+            
+            # Добавляем в список новостей с изображениями, если есть изображение
+            if with_images and item.get('image_url'):
+                news_with_images.append({
+                    'title': title,
+                    'link': link,
+                    'summary': summary, 
+                    'image_url': item['image_url'],
+                    'source': source
+                })
         
         # Добавляем разделитель между группами
         all_parts.append("─────────────────")
@@ -275,4 +338,58 @@ def format_news_message(news_items: List[Dict[str, Any]]) -> str:
     if all_parts and all_parts[-1] == "─────────────────":
         all_parts.pop()
     
-    return "\n\n".join(all_parts)
+    return "\n\n".join(all_parts), news_with_images
+
+def get_categorized_news(news_items: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
+    """
+    Categorize news items by topics
+    
+    Args:
+        news_items: List of news items to categorize
+    
+    Returns:
+        Dictionary with categories as keys and lists of news items as values
+    """
+    categories = {
+        "Общество": [],
+        "Экономика": [],
+        "Политика": [],
+        "Происшествия": [],
+        "Спорт": [],
+        "Технологии": [],
+        "Развлечения": [],
+        "Другое": []
+    }
+    
+    # Keywords for each category
+    keywords = {
+        "Общество": ["общество", "люди", "социальн", "образовани", "культур", "традиц", "историч", "население"],
+        "Экономика": ["экономик", "финанс", "инвестиц", "банк", "рубл", "доллар", "бизнес", "кризис", "инфляц", "цен"],
+        "Политика": ["политик", "президент", "выбор", "парламент", "госдум", "правительств", "депутат", "санкц"],
+        "Происшествия": ["авари", "катастроф", "происшеств", "пожар", "дтп", "чрезвычайн", "несчастн", "преступ"],
+        "Спорт": ["спорт", "футбол", "хоккей", "баскетбол", "олимпи", "чемпионат", "кубок", "турнир", "матч"],
+        "Технологии": ["технолог", "гаджет", "компьютер", "интернет", "программ", "мобильн", "телефон", "робот", "искусствен"],
+        "Развлечения": ["кино", "фильм", "сериал", "музык", "звезд", "концерт", "театр", "выставк", "игр"]
+    }
+    
+    for item in news_items:
+        title = item.get('title', '').lower()
+        summary = item.get('summary', '').lower()
+        text = title + " " + summary
+        
+        # Default category
+        category = "Другое"
+        max_matches = 0
+        
+        # Check each category
+        for cat, words in keywords.items():
+            matches = sum(1 for word in words if word in text)
+            if matches > max_matches:
+                max_matches = matches
+                category = cat
+        
+        # Add to matching category
+        categories[category].append(item)
+    
+    # Remove empty categories
+    return {k: v for k, v in categories.items() if v}
