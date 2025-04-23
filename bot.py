@@ -6,7 +6,7 @@ from datetime import datetime, time, timedelta
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from aiogram.filters import Command
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, BotCommand
 
 # Add the parent directory to path so we can import Flask models
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -453,6 +453,8 @@ async def cmd_help(message: types.Message):
         reply_markup=keyboard
     )
 
+
+
 @dp.message(Command('информация', 'info'))
 @dp.message(F.text == "ℹ️ Информация")
 async def cmd_info(message: types.Message):
@@ -827,6 +829,13 @@ async def main():
     """Main function"""
     # Start scheduler task
     asyncio.create_task(scheduler())
+    
+    # Регистрируем команды бота
+    try:
+        await set_bot_commands()
+        logger.info("Bot commands have been set successfully")
+    except Exception as e:
+        logger.error(f"Error setting bot commands: {e}")
     
     # Start the bot
     await dp.start_polling(bot)
