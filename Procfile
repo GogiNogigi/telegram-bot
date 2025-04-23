@@ -1,1 +1,1 @@
-web: bash -c "chmod +x entrypoint.sh && ./entrypoint.sh"
+web: bash -c "chmod +x entrypoint.sh run_permanently.py run_telegram_bot.py health_check.py && python run_permanently.py"
