@@ -51,11 +51,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Static time display in the header (no animation/updates)
+    // Live time update in the header
     const timeDisplay = document.getElementById('currentTime');
     if (timeDisplay) {
-        // We'll keep the server-provided time without updates
-        // This ensures the time is static and doesn't change/animate
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            timeDisplay.innerHTML = '<i class="far fa-clock"></i> ' + timeString;
+        }
+        
+        // Update time every second
+        updateTime();
+        setInterval(updateTime, 1000);
     }
     
     // Static Moscow time display (no animation/updates)
