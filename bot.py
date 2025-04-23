@@ -268,39 +268,39 @@ def get_admin_keyboard():
     )
     return keyboard
 
-# Создаем инлайн-клавиатуру для категорий новостей
-def get_categories_keyboard():
-    """Create inline keyboard with news categories"""
-    builder = InlineKeyboardBuilder()
-    
-    # Добавляем кнопки для основных категорий
-    builder.button(text="🌍 Общество", callback_data="category:Общество")
-    builder.button(text="💼 Экономика", callback_data="category:Экономика")
-    builder.button(text="🏛 Политика", callback_data="category:Политика")
-    builder.button(text="🚨 Происшествия", callback_data="category:Происшествия")
-    builder.button(text="⚽ Спорт", callback_data="category:Спорт")
-    builder.button(text="💻 Технологии", callback_data="category:Технологии")
-    builder.button(text="🎬 Развлечения", callback_data="category:Развлечения")
-    builder.button(text="🌐 Все новости", callback_data="category:all")
-    
-    # Выводим кнопки в 2 колонки
-    builder.adjust(2)
-    
-    return builder.as_markup()
-
-# Создаем инлайн-клавиатуру для выбора отображения с картинками или без
-def get_view_options_keyboard():
-    """Create inline keyboard with view options"""
-    builder = InlineKeyboardBuilder()
-    
-    builder.button(text="📝 Только текст", callback_data="view:text")
-    builder.button(text="🖼 С изображениями", callback_data="view:images")
-    builder.button(text="🗂 По категориям", callback_data="view:categories")
-    
-    # Выводим кнопки в одну строку
-    builder.adjust(1)
-    
-    return builder.as_markup()
+# Commented out - removed inline buttons
+# def get_categories_keyboard():
+#     """Create inline keyboard with news categories"""
+#     builder = InlineKeyboardBuilder()
+#     
+#     # Добавляем кнопки для основных категорий
+#     builder.button(text="🌍 Общество", callback_data="category:Общество")
+#     builder.button(text="💼 Экономика", callback_data="category:Экономика")
+#     builder.button(text="🏛 Политика", callback_data="category:Политика")
+#     builder.button(text="🚨 Происшествия", callback_data="category:Происшествия")
+#     builder.button(text="⚽ Спорт", callback_data="category:Спорт")
+#     builder.button(text="💻 Технологии", callback_data="category:Технологии")
+#     builder.button(text="🎬 Развлечения", callback_data="category:Развлечения")
+#     builder.button(text="🌐 Все новости", callback_data="category:all")
+#     
+#     # Выводим кнопки в 2 колонки
+#     builder.adjust(2)
+#     
+#     return builder.as_markup()
+# 
+# # Создаем инлайн-клавиатуру для выбора отображения с картинками или без
+# def get_view_options_keyboard():
+#     """Create inline keyboard with view options"""
+#     builder = InlineKeyboardBuilder()
+#     
+#     builder.button(text="📝 Только текст", callback_data="view:text")
+#     builder.button(text="🖼 С изображениями", callback_data="view:images")
+#     builder.button(text="🗂 По категориям", callback_data="view:categories")
+#     
+#     # Выводим кнопки в одну строку
+#     builder.adjust(1)
+#     
+#     return builder.as_markup()
 
 # Initialize bot and dispatcher with token from settings
 token = get_telegram_token()
@@ -1005,11 +1005,6 @@ async def send_news_to_subscribers():
         # Add footer
         formatted_news += "\n\n<i>Это автоматическая рассылка новостей. Чтобы отписаться, используйте команду /отписаться</i>"
         
-        # Создаем кнопки для просмотра по категориям
-        categories_button = InlineKeyboardBuilder()
-        categories_button.button(text="🗂 Просмотреть по категориям", callback_data="view:categories")
-        categories_button.adjust(1)
-        
         # Send to all subscribers
         logger.info(f"Sending news to {len(subscribers)} subscribers")
         for user_id in subscribers:
@@ -1019,8 +1014,7 @@ async def send_news_to_subscribers():
                     user_id,
                     formatted_news,
                     parse_mode="HTML",
-                    disable_web_page_preview=True,
-                    reply_markup=categories_button.as_markup()
+                    disable_web_page_preview=True
                 )
                 
                 # Если есть новости с изображениями, отправляем лучшие 3 изображения
