@@ -842,6 +842,9 @@ def get_moscow_time():
 
 async def scheduler():
     """Run scheduled tasks"""
+    startup_log_done = False
+    last_check_times = {}  # Хранит время последней проверки для каждого времени отправки
+    
     while True:
         try:
             # Получаем текущее время по Москве - полный datetime объект
@@ -851,6 +854,16 @@ async def scheduler():
             # Get all send times
             send_times = get_all_send_times()
             
+            # При первом запуске подробно логируем все настройки
+            if not startup_log_done:
+                time_strings = [t.strftime('%H:%M') for t in send_times]
+                logger.info(f"=== SCHEDULER INITIALIZED ===")
+                logger.info(f"Current Moscow time: {moscow_datetime.strftime('%Y-%m-%d %H:%M:%S')}")
+                logger.info(f"Configured send times: {', '.join(time_strings)}")
+                logger.info(f"Next check will be at xx:xx:00 (checking every minute)")
+                logger.info(f"===============================")
+                startup_log_done = True
+            
             # Логируем текущее время и времена отправки каждые 5 минут для отладки
             if moscow_datetime.minute % 5 == 0 and moscow_datetime.second < 5:
                 time_strings = [t.strftime('%H:%M') for t in send_times]
@@ -858,23 +871,50 @@ async def scheduler():
             
             # Check if it's time to send news
             for send_time in send_times:
-                # Check if current time is within 1 minute of the send time
+                # Получаем уникальный ключ для этого времени отправки
+                time_key = send_time.strftime('%H:%M')
+                
+                # Рассчитываем текущее и целевое время в минутах от начала дня
                 current_minutes = now.hour * 60 + now.minute
                 target_minutes = send_time.hour * 60 + send_time.minute
                 
                 # Вычисляем разницу во времени
                 time_diff = abs(current_minutes - target_minutes)
                 
+                # Проверка на пересечение полуночи
+                if time_diff > 720:  # больше 12 часов - возможно пересечение дня
+                    time_diff = 1440 - time_diff  # 24 часа в минутах
+                
                 # Логируем когда приближаемся к времени отправки (в пределах 3 минут)
                 if time_diff <= 3:
                     logger.info(f"Approaching send time: current={now.strftime('%H:%M')}, target={send_time.strftime('%H:%M')}, diff={time_diff} minutes")
                 
-                if time_diff <= 1:
-                    logger.info(f"Scheduled news delivery triggered at {now.strftime('%H:%M')} MSK time")
-                    await send_news_to_subscribers()
+                # Проверяем, не посылали ли мы уже сегодня в это время
+                today_key = f"{moscow_datetime.date()}_{time_key}"
+                
+                if time_diff <= 1 and today_key not in last_check_times:
+                    logger.info(f"!!! Scheduled news delivery triggered at {now.strftime('%H:%M')} MSK time for target {time_key} !!!")
+                    
+                    # Сохраняем информацию о том, что мы обработали это время сегодня
+                    last_check_times[today_key] = moscow_datetime
+                    
+                    # Отправляем новости
+                    try:
+                        await send_news_to_subscribers()
+                        logger.info(f"News successfully sent at {now.strftime('%H:%M')} MSK time")
+                    except Exception as e:
+                        logger.error(f"Error sending news: {e}", exc_info=True)
+                    
                     # Wait a bit more than a minute to avoid sending twice
                     await asyncio.sleep(70)
                     break
+            
+            # Очистим старые записи (старше 24 часов)
+            current_date = moscow_datetime.date()
+            obsolete_keys = [k for k in last_check_times.keys() 
+                            if (current_date - datetime.strptime(k.split('_')[0], '%Y-%m-%d').date()).days >= 1]
+            for k in obsolete_keys:
+                del last_check_times[k]
             
             # Check every minute
             await asyncio.sleep(60)
