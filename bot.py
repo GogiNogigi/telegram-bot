@@ -822,23 +822,39 @@ def get_moscow_time():
         # Получаем текущее время в UTC и конвертируем в московское
         utc_time = datetime.utcnow().replace(tzinfo=pytz.UTC)
         moscow_time = utc_time.astimezone(moscow_tz)
+        
+        # Логируем время каждые 10 минут для отладки
+        if moscow_time.minute % 10 == 0 and moscow_time.second < 5:
+            logger.info(f"Current Moscow time (pytz): {moscow_time.strftime('%Y-%m-%d %H:%M:%S %Z%z')}")
+            
         return moscow_time
     except ImportError:
         # Если pytz не установлен, используем фиксированное смещение UTC+3
         moscow_offset = timedelta(hours=3)
         utc_time = datetime.utcnow()
         moscow_time = utc_time + moscow_offset
+        
+        # Логируем время каждые 10 минут для отладки
+        if moscow_time.minute % 10 == 0 and moscow_time.second < 5:
+            logger.info(f"Current Moscow time (manual offset): {moscow_time.strftime('%Y-%m-%d %H:%M:%S')} (UTC+3)")
+            
         return moscow_time
 
 async def scheduler():
     """Run scheduled tasks"""
     while True:
         try:
-            # Получаем текущее время по Москве
-            now = get_moscow_time().time()
+            # Получаем текущее время по Москве - полный datetime объект
+            moscow_datetime = get_moscow_time()
+            now = moscow_datetime.time()
             
             # Get all send times
             send_times = get_all_send_times()
+            
+            # Логируем текущее время и времена отправки каждые 5 минут для отладки
+            if moscow_datetime.minute % 5 == 0 and moscow_datetime.second < 5:
+                time_strings = [t.strftime('%H:%M') for t in send_times]
+                logger.info(f"Current Moscow time: {moscow_datetime.strftime('%Y-%m-%d %H:%M:%S')}, Send times: {', '.join(time_strings)}")
             
             # Check if it's time to send news
             for send_time in send_times:
@@ -846,7 +862,14 @@ async def scheduler():
                 current_minutes = now.hour * 60 + now.minute
                 target_minutes = send_time.hour * 60 + send_time.minute
                 
-                if abs(current_minutes - target_minutes) <= 1:
+                # Вычисляем разницу во времени
+                time_diff = abs(current_minutes - target_minutes)
+                
+                # Логируем когда приближаемся к времени отправки (в пределах 3 минут)
+                if time_diff <= 3:
+                    logger.info(f"Approaching send time: current={now.strftime('%H:%M')}, target={send_time.strftime('%H:%M')}, diff={time_diff} minutes")
+                
+                if time_diff <= 1:
                     logger.info(f"Scheduled news delivery triggered at {now.strftime('%H:%M')} MSK time")
                     await send_news_to_subscribers()
                     # Wait a bit more than a minute to avoid sending twice
@@ -857,7 +880,7 @@ async def scheduler():
             await asyncio.sleep(60)
             
         except Exception as e:
-            logger.error(f"Error in scheduler: {e}")
+            logger.error(f"Error in scheduler: {e}", exc_info=True)
             await asyncio.sleep(60)
 
 async def main():
