@@ -24,11 +24,6 @@
     background-color: var(--bs-gray-800);
     border-color: var(--bs-gray-700);
     margin-bottom: 1.5rem;
-    transition: transform 0.2s;
-}
-
-.card:hover {
-    transform: translateY(-5px);
 }
 
 .card-header {
@@ -154,15 +149,9 @@ footer {
     margin-bottom: 1rem;
 }
 
-/* Animation for loading */
-@keyframes pulse {
-    0% { opacity: 0.6; }
-    50% { opacity: 1; }
-    100% { opacity: 0.6; }
-}
-
+/* Loading state (non-animated) */
 .loading {
-    animation: pulse 1.5s infinite;
+    opacity: 0.8;
 }
 
 /* Moscow time display */

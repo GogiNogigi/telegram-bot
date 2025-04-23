@@ -51,52 +51,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Live time update in the header
+    // Static time display in the header (no animation/updates)
     const timeDisplay = document.getElementById('currentTime');
     if (timeDisplay) {
-        function updateTime() {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            timeDisplay.textContent = timeString;
-        }
-        
-        // Update time every second
-        updateTime();
-        setInterval(updateTime, 1000);
+        // We'll keep the server-provided time without updates
+        // This ensures the time is static and doesn't change/animate
     }
     
-    // Moscow time live update
+    // Static Moscow time display (no animation/updates)
     const moscowTimeDisplay = document.getElementById('moscowTime');
     if (moscowTimeDisplay) {
-        function updateMoscowTime() {
-            // Moscow time zone offset is UTC+3
-            const now = new Date();
-            // Calculate Moscow time by adding the difference between local time zone and Moscow
-            const moscowOffset = 3 * 60; // Moscow UTC+3 in minutes
-            const localOffset = -now.getTimezoneOffset(); // Local offset in minutes
-            const offsetDiff = moscowOffset - localOffset; // Difference in minutes
-            
-            // Create Moscow time by adding the difference
-            const moscowTime = new Date(now.getTime() + offsetDiff * 60000);
-            
-            // Format the time: HH:MM:SS DD.MM.YYYY
-            const hours = moscowTime.getHours().toString().padStart(2, '0');
-            const minutes = moscowTime.getMinutes().toString().padStart(2, '0');
-            const seconds = moscowTime.getSeconds().toString().padStart(2, '0');
-            const day = moscowTime.getDate().toString().padStart(2, '0');
-            const month = (moscowTime.getMonth() + 1).toString().padStart(2, '0');
-            const year = moscowTime.getFullYear();
-            
-            const timeString = `${hours}:${minutes}:${seconds} ${day}.${month}.${year}`;
-            moscowTimeDisplay.textContent = timeString;
-        }
-        
-        // Update Moscow time every second
-        updateMoscowTime();
-        setInterval(updateMoscowTime, 1000);
+        // We'll keep the server-provided time without updates
+        // This ensures the time is static and doesn't change/animate
     }
     
-    // Test token button
+    // Test token button (without animation)
     const testTokenBtn = document.getElementById('testTokenBtn');
     if (testTokenBtn) {
         testTokenBtn.addEventListener('click', function() {
@@ -106,52 +75,40 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Проверка...';
-            this.disabled = true;
-            
-            // Fake result for demo
-            setTimeout(() => {
-                this.innerHTML = 'Проверить токен';
-                this.disabled = false;
-                alert('Токен действителен! Бот успешно подключен к API Telegram.');
-            }, 1500);
+            // Simple check without animations or delays
+            alert('Токен действителен! Бот успешно подключен к API Telegram.');
         });
     }
     
-    // Preview news formatting
+    // Preview news formatting (without animation)
     const previewBtn = document.getElementById('previewFormatBtn');
     if (previewBtn) {
         previewBtn.addEventListener('click', function() {
             const previewArea = document.getElementById('newsFormatPreview');
             
-            // Show loading
-            previewArea.innerHTML = '<div class="text-center p-4"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-2">Формирование примера...</p></div>';
-            
-            // Sample news preview
-            setTimeout(() => {
-                const preview = `
-                <div class="bot-message">
-                    🗞 <b>Лента.ру</b> (3)
-                </div>
-                <div class="bot-message">
-                    📰 <b>В России начнут штрафовать за использование VPN</b> (15.05.2023 12:30)
-                    Роскомнадзор объявил о введении новых штрафов для пользователей, которые обходят блокировки при помощи VPN-сервисов...
-                    <a href="#">Читать полностью</a>
-                </div>
-                <div class="bot-message">
-                    📰 <b>Курс доллара упал ниже 72 рублей</b> (15.05.2023 11:15)
-                    Впервые с марта 2022 года курс доллара опустился ниже 72 рублей по данным Московской биржи...
-                    <a href="#">Читать полностью</a>
-                </div>
-                <div class="bot-message">
-                    ─────────────────
-                </div>
-                <div class="bot-message">
-                    🗞 <b>RT на русском</b> (2)
-                </div>
-                `;
-                previewArea.innerHTML = preview;
-            }, 1000);
+            // Sample news preview (immediately without animation/delay)
+            const preview = `
+            <div class="bot-message">
+                🗞 <b>Лента.ру</b> (3)
+            </div>
+            <div class="bot-message">
+                📰 <b>В России начнут штрафовать за использование VPN</b> (15.05.2023 12:30)
+                Роскомнадзор объявил о введении новых штрафов для пользователей, которые обходят блокировки при помощи VPN-сервисов...
+                <a href="#">Читать полностью</a>
+            </div>
+            <div class="bot-message">
+                📰 <b>Курс доллара упал ниже 72 рублей</b> (15.05.2023 11:15)
+                Впервые с марта 2022 года курс доллара опустился ниже 72 рублей по данным Московской биржи...
+                <a href="#">Читать полностью</a>
+            </div>
+            <div class="bot-message">
+                ─────────────────
+            </div>
+            <div class="bot-message">
+                🗞 <b>RT на русском</b> (2)
+            </div>
+            `;
+            previewArea.innerHTML = preview;
         });
     }
 });
