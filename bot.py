@@ -251,12 +251,12 @@ async def set_bot_commands():
     """Зарегистрировать команды бота для удобства пользователей"""
     await bot.set_my_commands([
         BotCommand(command="start", description="Старт - начать работу с ботом"),
-        BotCommand(command="новости", description="Запрос новостей - получить свежие новости"),
-        BotCommand(command="подписаться", description="Начало подписки - подписаться на рассылку"),
-        BotCommand(command="отписаться", description="Отмена подписки - отписаться от рассылки"),
-        BotCommand(command="настройки", description="Настройки - посмотреть настройки"),
-        BotCommand(command="информация", description="Информация - сведения о боте"),
-        BotCommand(command="помощь", description="Помощь - список команд")
+        BotCommand(command="news", description="Запрос новостей - получить свежие новости"),
+        BotCommand(command="subscribe", description="Начало подписки - подписаться на рассылку"),
+        BotCommand(command="unsubscribe", description="Отмена подписки - отписаться от рассылки"),
+        BotCommand(command="settings", description="Настройки - посмотреть настройки"),
+        BotCommand(command="info", description="Информация - сведения о боте"),
+        BotCommand(command="help", description="Помощь - список команд")
     ])
 
 # Command handlers
