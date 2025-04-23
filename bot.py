@@ -79,13 +79,17 @@ try:
             # Get additional send times
             additional_times = [st.send_time for st in SendTime.query.filter_by(is_active=True).all()]
             
-            # Combine all times and ensure they are correctly interpreted as Moscow time
+            # Combine all times
             all_times = [main_time] + additional_times
             
             # Log all times for debugging
             time_strings = [t.strftime('%H:%M') for t in all_times]
             logger.info(f"Scheduled send times (Moscow): {', '.join(time_strings)}")
             
+            # Hard debug check: вывести все времена подробно
+            for idx, t in enumerate(all_times):
+                logger.info(f"Send time {idx+1}: {t.strftime('%H:%M')} - hour={t.hour}, minute={t.minute}")
+                
             return all_times
     
     # Function to add subscriber using Flask models
@@ -851,6 +855,9 @@ async def scheduler():
             moscow_datetime = get_moscow_time()
             now = moscow_datetime.time()
             
+            # Log the current time for debugging
+            logger.info(f"Scheduler check - current Moscow time: {now.strftime('%H:%M:%S')}")
+            
             # Get all send times
             send_times = get_all_send_times()
             
@@ -877,6 +884,9 @@ async def scheduler():
                 # Рассчитываем текущее и целевое время в минутах от начала дня
                 current_minutes = now.hour * 60 + now.minute
                 target_minutes = send_time.hour * 60 + send_time.minute
+                
+                # Детальное логирование для отладки
+                logger.info(f"Checking time: current={now.hour}:{now.minute} ({current_minutes} min), target={send_time.hour}:{send_time.minute} ({target_minutes} min)")
                 
                 # Вычисляем разницу во времени
                 time_diff = abs(current_minutes - target_minutes)
