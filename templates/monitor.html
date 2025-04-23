@@ -1,232 +1,155 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container py-4">
+<div class="container my-4">
     <div class="row mb-4">
         <div class="col">
-            <h1 class="display-5 mb-4">
-                <i class="fas fa-heartbeat text-info"></i> Мониторинг состояния системы
-            </h1>
-            <p class="lead">
-                Страница отображает текущее состояние всех компонентов системы и позволяет вам контролировать их работу.
-            </p>
-            
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <button class="btn btn-primary" id="refreshData">
-                        <i class="fas fa-sync-alt"></i> Обновить данные
-                    </button>
-                    <button class="btn btn-secondary" id="toggleAutoRefresh">
-                        <i class="fas fa-clock"></i> Автообновление: <span id="autoRefreshStatus">Выкл</span>
-                    </button>
-                </div>
-                <div class="text-muted" id="lastUpdated">Последнее обновление: никогда</div>
+            <h1 class="mb-4">Мониторинг системы</h1>
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> Мониторинг показывает текущее состояние системы. Обновление происходит каждые 10 секунд.
             </div>
         </div>
     </div>
 
-    <!-- Системный статус -->
     <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-primary">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="card-title mb-0">
-                        <i class="fas fa-server"></i> Общий статус системы
-                    </h3>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tachometer-alt"></i> Состояние системы
+                    </h5>
                 </div>
-                <div class="card-body">
-                    <div id="system-status-alert" class="alert alert-info">
-                        <div class="d-flex align-items-center">
-                            <div class="spinner-border spinner-border-sm me-2" role="status">
-                                <span class="visually-hidden">Загрузка...</span>
-                            </div>
-                            <span>Загрузка данных...</span>
+                <div class="card-body" id="system-status">
+                    <div class="d-flex justify-content-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Загрузка...</span>
                         </div>
                     </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="card mb-3">
-                                <div class="card-header">
-                                    <h5 class="card-title mb-0">Статистика системы</h5>
-                                </div>
-                                <div class="card-body">
-                                    <ul class="list-group list-group-flush" id="system-stats">
-                                        <li class="list-group-item d-flex justify-content-between">
-                                            <span>Время работы:</span>
-                                            <span id="uptime-value" class="badge bg-secondary">Загрузка...</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between">
-                                            <span>Подписчиков:</span>
-                                            <span id="subscribers-count" class="badge bg-secondary">Загрузка...</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between">
-                                            <span>Активных источников:</span>
-                                            <span id="feeds-count" class="badge bg-secondary">Загрузка...</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between">
-                                            <span>Новостей в базе:</span>
-                                            <span id="news-count" class="badge bg-secondary">Загрузка...</span>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="card h-100">
-                                <div class="card-header">
-                                    <h5 class="card-title mb-0">Состояние процессов</h5>
-                                </div>
-                                <div class="card-body">
-                                    <ul class="list-group list-group-flush">
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            <span>
-                                                <i class="fas fa-globe"></i> Веб-сервер
-                                            </span>
-                                            <span id="web-server-status" class="badge bg-secondary">
-                                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                                                <span>Загрузка...</span>
-                                            </span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            <span>
-                                                <i class="fab fa-telegram"></i> Telegram бот
-                                            </span>
-                                            <span id="telegram-bot-status" class="badge bg-secondary">
-                                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                                                <span>Загрузка...</span>
-                                            </span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            <span>
-                                                <i class="fas fa-database"></i> База данных
-                                            </span>
-                                            <span id="database-status" class="badge bg-secondary">
-                                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                                                <span>Загрузка...</span>
-                                            </span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            <span>
-                                                <i class="fas fa-heartbeat"></i> Мониторинг
-                                            </span>
-                                            <span id="monitoring-status" class="badge bg-secondary">
-                                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                                                <span>Загрузка...</span>
-                                            </span>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-robot"></i> Telegram бот
+                    </h5>
+                </div>
+                <div class="card-body" id="bot-status">
+                    <div class="d-flex justify-content-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Загрузка...</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Heartbeat данные -->
+
     <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-info">
-                <div class="card-header bg-info text-white">
-                    <h3 class="card-title mb-0">
-                        <i class="fas fa-stethoscope"></i> Heartbeat данные
-                    </h3>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-database"></i> База данных
+                    </h5>
                 </div>
-                <div class="card-body">
-                    <div class="alert alert-secondary" id="no-heartbeat" style="display:none;">
-                        <i class="fas fa-exclamation-triangle"></i> Heartbeat данные не найдены. Проверьте, запущен ли скрипт мониторинга.
+                <div class="card-body" id="database-status">
+                    <div class="d-flex justify-content-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Загрузка...</span>
+                        </div>
                     </div>
-                    
-                    <div id="heartbeat-data">
-                        <div class="text-center">
-                            <div class="spinner-border" role="status">
-                                <span class="visually-hidden">Загрузка...</span>
-                            </div>
-                            <p>Загрузка heartbeat данных...</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-bar"></i> Статистика
+                    </h5>
+                </div>
+                <div class="card-body" id="stats-status">
+                    <div class="d-flex justify-content-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Загрузка...</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Управление сервисами -->
+
     <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-warning">
-                <div class="card-header bg-warning text-dark">
-                    <h3 class="card-title mb-0">
+        <div class="col">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
                         <i class="fas fa-tools"></i> Управление сервисами
-                    </h3>
+                    </h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5 class="card-title mb-0">Веб-сервер</h5>
-                                </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100">
                                 <div class="card-body">
-                                    <div class="d-grid gap-2">
-                                        <button class="btn btn-outline-danger restart-service" data-service="web">
-                                            <i class="fas fa-sync-alt"></i> Перезапустить веб-сервер
-                                        </button>
-                                    </div>
+                                    <h5 class="card-title">Веб-сервер</h5>
+                                    <p class="card-text">Управление веб-интерфейсом</p>
+                                    <button class="btn btn-warning" id="restart-web">
+                                        <i class="fas fa-sync"></i> Перезапустить
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5 class="card-title mb-0">Telegram бот</h5>
-                                </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100">
                                 <div class="card-body">
-                                    <div class="d-grid gap-2">
-                                        <button class="btn btn-outline-danger restart-service" data-service="bot">
-                                            <i class="fas fa-sync-alt"></i> Перезапустить Telegram бота
+                                    <h5 class="card-title">Telegram бот</h5>
+                                    <p class="card-text">Управление ботом</p>
+                                    <button class="btn btn-warning" id="restart-bot">
+                                        <i class="fas fa-sync"></i> Перезапустить
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Мониторинг</h5>
+                                    <p class="card-text">Управление системой мониторинга</p>
+                                    <div class="btn-group">
+                                        <button class="btn btn-success" id="start-monitor">
+                                            <i class="fas fa-play"></i> Запустить
+                                        </button>
+                                        <button class="btn btn-danger" id="stop-monitor">
+                                            <i class="fas fa-stop"></i> Остановить
                                         </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="row mt-3">
-                        <div class="col-md-6 mb-3">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5 class="card-title mb-0">Мониторинг</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="d-grid gap-2">
-                                        <button class="btn btn-outline-primary start-service" data-service="monitor">
-                                            <i class="fas fa-play"></i> Запустить мониторинг
-                                        </button>
-                                        <button class="btn btn-outline-secondary stop-service" data-service="monitor">
-                                            <i class="fas fa-stop"></i> Остановить мониторинг
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5 class="card-title mb-0">Просмотр логов</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="d-grid gap-2">
-                                        <a href="{{ url_for('view_logs', log_type='all') }}" class="btn btn-outline-info">
-                                            <i class="fas fa-file-alt"></i> Просмотреть все логи
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-file-alt"></i> Логи
+                    </h5>
+                    <a href="{{ url_for('view_logs') }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-external-link-alt"></i> Открыть полный просмотр логов
+                    </a>
+                </div>
+                <div class="card-body" id="logs-section">
+                    <div class="d-flex justify-content-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Загрузка...</span>
                         </div>
                     </div>
                 </div>
@@ -238,265 +161,399 @@
 
 {% block extra_js %}
 <script>
-    // Переменные для автообновления
-    let autoRefreshInterval = null;
-    const AUTO_REFRESH_INTERVAL = 30000; // 30 секунд
-    
-    // Статусы и их стили
-    const STATUS_CLASSES = {
-        'healthy': 'bg-success',
-        'warning': 'bg-warning text-dark',
-        'error': 'bg-danger',
-        'unknown': 'bg-secondary',
-        'restarted': 'bg-info',
-        'restart_failed': 'bg-danger'
-    };
-    
-    // Форматирование времени работы
+    // Функция для форматирования времени работы
     function formatUptime(seconds) {
-        if (!seconds) return 'Неизвестно';
+        if (!seconds) return 'неизвестно';
         
         const days = Math.floor(seconds / 86400);
         const hours = Math.floor((seconds % 86400) / 3600);
         const minutes = Math.floor((seconds % 3600) / 60);
+        const secs = Math.floor(seconds % 60);
         
         let result = '';
-        if (days > 0) result += `${days}д `;
-        if (hours > 0 || days > 0) result += `${hours}ч `;
-        result += `${minutes}м`;
+        if (days > 0) result += `${days} д `;
+        if (hours > 0) result += `${hours} ч `;
+        if (minutes > 0) result += `${minutes} мин `;
+        if (secs > 0 || result === '') result += `${secs} сек`;
         
-        return result;
+        return result.trim();
     }
     
-    // Обновление данных мониторинга
-    function updateMonitoringData() {
+    // Функция для форматирования даты и времени
+    function formatDateTime(isoDate) {
+        if (!isoDate) return 'неизвестно';
+        
+        const date = new Date(isoDate);
+        return date.toLocaleString('ru-RU', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+    }
+
+    // Функция для получения и отображения статуса системы
+    function fetchSystemStatus() {
         fetch('/api/health')
             .then(response => response.json())
             .then(data => {
-                console.log('Health data:', data);
-                
-                // Обновляем время последнего обновления
-                const now = new Date();
-                document.getElementById('lastUpdated').textContent = `Последнее обновление: ${now.toLocaleTimeString()}`;
-                
-                // Обновляем системный статус
-                const systemStatus = data.status === 'ok' ? 'healthy' : 'error';
-                const systemStatusAlert = document.getElementById('system-status-alert');
-                
-                // Удаляем старые классы
-                systemStatusAlert.classList.remove('alert-info', 'alert-success', 'alert-warning', 'alert-danger');
-                
-                // Добавляем новый класс в зависимости от статуса
-                if (systemStatus === 'healthy') {
-                    systemStatusAlert.classList.add('alert-success');
-                    systemStatusAlert.innerHTML = '<i class="fas fa-check-circle"></i> Все системы работают нормально.';
-                } else {
-                    systemStatusAlert.classList.add('alert-danger');
-                    systemStatusAlert.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Обнаружены проблемы в работе системы.';
-                }
-                
-                // Обновляем статистику
-                if (data.components && data.components.system) {
-                    document.getElementById('uptime-value').textContent = formatUptime(data.components.system.uptime);
-                }
-                
-                if (data.components && data.components.stats) {
-                    const stats = data.components.stats;
-                    document.getElementById('subscribers-count').textContent = stats.subscribers || '0';
-                    document.getElementById('feeds-count').textContent = stats.active_feeds || '0';
-                    document.getElementById('news-count').textContent = stats.news_items || '0';
-                }
-                
-                // Обновляем статусы компонентов
-                // Веб-сервер всегда работает, если мы получили ответ от API
-                const webServerStatus = document.getElementById('web-server-status');
-                updateStatusBadge(webServerStatus, 'healthy', 'Работает');
-                
-                // База данных
-                const dbStatus = data.components && data.components.database ? 
-                    data.components.database.status : 'unknown';
-                const dbStatusBadge = document.getElementById('database-status');
-                updateStatusBadge(dbStatusBadge, dbStatus, 
-                    dbStatus === 'healthy' ? 'Работает' : 'Проблема');
-                
-                // Telegram бот
-                const botActive = data.components && data.components.bot ? 
-                    data.components.bot.active : false;
-                const botStatus = botActive ? 'healthy' : 'warning';
-                const botStatusBadge = document.getElementById('telegram-bot-status');
-                updateStatusBadge(botStatusBadge, botStatus, 
-                    botActive ? 'Активен' : 'Не активен');
-                
-                // Heartbeat данные
-                if (data.heartbeat) {
-                    document.getElementById('no-heartbeat').style.display = 'none';
-                    displayHeartbeatData(data.heartbeat);
-                    
-                    // Проверяем статус мониторинга
-                    const monitoringStatus = data.heartbeat.system ? 
-                        data.heartbeat.system.status : 'unknown';
-                    const monitoringStatusBadge = document.getElementById('monitoring-status');
-                    updateStatusBadge(monitoringStatusBadge, monitoringStatus, 
-                        monitoringStatus === 'healthy' ? 'Работает' : 
-                        monitoringStatus === 'starting' ? 'Запускается' : 
-                        monitoringStatus === 'stopped' ? 'Остановлен' : 'Неизвестно');
-                } else {
-                    document.getElementById('no-heartbeat').style.display = 'block';
-                    document.getElementById('heartbeat-data').innerHTML = 
-                        '<p class="text-muted">Данные мониторинга недоступны.</p>';
-                    
-                    // Мониторинг не работает
-                    const monitoringStatusBadge = document.getElementById('monitoring-status');
-                    updateStatusBadge(monitoringStatusBadge, 'error', 'Не запущен');
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching health data:', error);
-                document.getElementById('system-status-alert').classList.remove('alert-info', 'alert-success');
-                document.getElementById('system-status-alert').classList.add('alert-danger');
-                document.getElementById('system-status-alert').innerHTML = 
-                    `<i class="fas fa-exclamation-triangle"></i> Ошибка при получении данных: ${error.message}`;
-            });
-    }
-    
-    // Обновление бэйджа статуса
-    function updateStatusBadge(element, status, text) {
-        // Удаляем все старые классы статуса
-        Object.values(STATUS_CLASSES).forEach(cls => {
-            element.classList.remove(cls);
-        });
-        
-        // Добавляем новый класс
-        element.classList.add(STATUS_CLASSES[status] || 'bg-secondary');
-        
-        // Обновляем текст
-        element.innerHTML = text || status;
-    }
-    
-    // Отображение данных heartbeat
-    function displayHeartbeatData(heartbeat) {
-        let html = '<div class="accordion" id="heartbeatAccordion">';
-        
-        // Сортируем ключи, чтобы system был первым
-        const keys = Object.keys(heartbeat).sort((a, b) => {
-            if (a === 'system') return -1;
-            if (b === 'system') return 1;
-            return a.localeCompare(b);
-        });
-        
-        keys.forEach((key, index) => {
-            const item = heartbeat[key];
-            const status = item.status || 'unknown';
-            const statusClass = STATUS_CLASSES[status] || 'bg-secondary';
-            const lastCheck = item.last_check ? new Date(item.last_check).toLocaleString() : 'неизвестно';
-            
-            html += `
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="heading${index}">
-                        <button class="accordion-button ${index !== 0 ? 'collapsed' : ''}" type="button" data-bs-toggle="collapse" 
-                            data-bs-target="#collapse${index}" aria-expanded="${index === 0 ? 'true' : 'false'}" 
-                            aria-controls="collapse${index}">
-                            <div class="d-flex w-100 justify-content-between align-items-center">
-                                <span>
-                                    <i class="fas fa-${key === 'system' ? 'server' : key === 'web' ? 'globe' : 
-                                                  key === 'telegram_bot' ? 'telegram' : 
-                                                  key === 'processes' ? 'tasks' : 'heartbeat'}"></i>
-                                    ${key === 'system' ? 'Система' : 
-                                     key === 'web' ? 'Веб-сервер' : 
-                                     key === 'telegram_bot' ? 'Telegram бот' : 
-                                     key === 'processes' ? 'Процессы' : key}
-                                </span>
-                                <span class="badge ${statusClass}">${status}</span>
+                // Обновление раздела статуса системы
+                const systemInfo = data.components.system || {};
+                let systemHtml = `
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="p-3 border-start border-4 border-success rounded">
+                                <h6>Время работы:</h6>
+                                <p class="mb-0 fs-5">${formatUptime(systemInfo.uptime)}</p>
                             </div>
-                        </button>
-                    </h2>
-                    <div id="collapse${index}" class="accordion-collapse collapse ${index === 0 ? 'show' : ''}" 
-                         aria-labelledby="heading${index}" data-bs-parent="#heartbeatAccordion">
-                        <div class="accordion-body">
-                            <div class="mb-3">
-                                <strong>Последняя проверка:</strong> ${lastCheck}
-                            </div>
-                            <div class="card">
-                                <div class="card-header">Детали</div>
-                                <div class="card-body">
-                                    <pre class="bg-dark text-light p-3 rounded">${JSON.stringify(item.details || {}, null, 2)}</pre>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 border-start border-4 border-info rounded">
+                                <h6>CPU:</h6>
+                                <div class="progress" style="height: 25px;">
+                                    <div class="progress-bar ${systemInfo.cpu_percent > 80 ? 'bg-danger' : systemInfo.cpu_percent > 50 ? 'bg-warning' : 'bg-success'}" 
+                                        role="progressbar" 
+                                        style="width: ${systemInfo.cpu_percent || 0}%;" 
+                                        aria-valuenow="${systemInfo.cpu_percent || 0}" 
+                                        aria-valuemin="0" 
+                                        aria-valuemax="100">
+                                        ${systemInfo.cpu_percent || 0}%
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        <div class="col-md-6">
+                            <div class="p-3 border-start border-4 border-primary rounded">
+                                <h6>Память:</h6>
+                                <div class="progress" style="height: 25px;">
+                                    <div class="progress-bar ${systemInfo.memory_percent > 80 ? 'bg-danger' : systemInfo.memory_percent > 50 ? 'bg-warning' : 'bg-success'}" 
+                                        role="progressbar" 
+                                        style="width: ${systemInfo.memory_percent || 0}%;" 
+                                        aria-valuenow="${systemInfo.memory_percent || 0}" 
+                                        aria-valuemin="0" 
+                                        aria-valuemax="100">
+                                        ${systemInfo.memory_percent || 0}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 border-start border-4 border-warning rounded">
+                                <h6>Диск:</h6>
+                                <div class="progress" style="height: 25px;">
+                                    <div class="progress-bar ${systemInfo.disk_percent > 80 ? 'bg-danger' : systemInfo.disk_percent > 50 ? 'bg-warning' : 'bg-success'}" 
+                                        role="progressbar" 
+                                        style="width: ${systemInfo.disk_percent || 0}%;" 
+                                        aria-valuenow="${systemInfo.disk_percent || 0}" 
+                                        aria-valuemin="0" 
+                                        aria-valuemax="100">
+                                        ${systemInfo.disk_percent || 0}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="p-3 rounded bg-dark text-light">
+                                <h6>Обновлено:</h6>
+                                <p class="mb-0">${formatDateTime(data.timestamp)}</p>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            `;
-        });
-        
-        html += '</div>';
-        document.getElementById('heartbeat-data').innerHTML = html;
-    }
-    
-    // Запуск/остановка автообновления
-    function toggleAutoRefresh() {
-        const statusElement = document.getElementById('autoRefreshStatus');
-        
-        if (autoRefreshInterval) {
-            clearInterval(autoRefreshInterval);
-            autoRefreshInterval = null;
-            statusElement.textContent = 'Выкл';
-        } else {
-            autoRefreshInterval = setInterval(updateMonitoringData, AUTO_REFRESH_INTERVAL);
-            statusElement.textContent = 'Вкл';
-        }
-    }
-    
-    // Инициализация страницы
-    document.addEventListener('DOMContentLoaded', function() {
-        // Загружаем данные сразу при открытии страницы
-        updateMonitoringData();
-        
-        // Настраиваем обработчики событий
-        document.getElementById('refreshData').addEventListener('click', updateMonitoringData);
-        document.getElementById('toggleAutoRefresh').addEventListener('click', toggleAutoRefresh);
-        
-        // Обработчики для кнопок управления сервисами
-        document.querySelectorAll('.restart-service').forEach(button => {
-            button.addEventListener('click', function() {
-                const service = this.dataset.service;
-                if (confirm(`Вы уверены, что хотите перезапустить ${service === 'web' ? 'веб-сервер' : 'Telegram бота'}?`)) {
-                    fetch(`/api/restart/${service}`, { method: 'POST' })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                alert(`${service === 'web' ? 'Веб-сервер' : 'Telegram бот'} успешно перезапущен.`);
-                                setTimeout(updateMonitoringData, 3000); // Обновляем данные через 3 секунды
-                            } else {
-                                alert(`Ошибка при перезапуске: ${data.error}`);
-                            }
-                        })
-                        .catch(error => {
-                            alert(`Ошибка: ${error.message}`);
-                        });
-                }
-            });
-        });
-        
-        document.querySelectorAll('.start-service, .stop-service').forEach(button => {
-            button.addEventListener('click', function() {
-                const service = this.dataset.service;
-                const action = this.classList.contains('start-service') ? 'start' : 'stop';
+                `;
+                document.getElementById('system-status').innerHTML = systemHtml;
                 
-                fetch(`/api/${action}/${service}`, { method: 'POST' })
+                // Обновление раздела статуса бота
+                const botInfo = data.components.bot || {};
+                let botStatus = botInfo.active ? 'bg-success' : 'bg-danger';
+                let botStatusText = botInfo.active ? 'Активен' : 'Неактивен';
+                let tokenStatus = botInfo.token_exists ? 'Настроен' : 'Не настроен';
+                
+                let botHtml = `
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="p-3 border-start border-4 ${botStatus} rounded">
+                                <h6>Статус:</h6>
+                                <p class="mb-0 fs-5">
+                                    <span class="badge ${botStatus}">${botStatusText}</span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 border-start border-4 ${botInfo.token_exists ? 'border-success' : 'border-danger'} rounded">
+                                <h6>Токен API:</h6>
+                                <p class="mb-0 fs-5">
+                                    <span class="badge ${botInfo.token_exists ? 'bg-success' : 'bg-danger'}">${tokenStatus}</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                if (data.heartbeat && data.heartbeat.bot) {
+                    const botHeartbeat = data.heartbeat.bot;
+                    botHtml += `
+                        <div class="mt-3">
+                            <div class="p-3 border rounded">
+                                <h6>Последняя активность:</h6>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Проверка состояния:
+                                        <span>${formatDateTime(botHeartbeat.last_check)}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Статус:
+                                        <span class="badge ${botHeartbeat.status === 'ok' ? 'bg-success' : 'bg-danger'}">${botHeartbeat.status === 'ok' ? 'В порядке' : 'Ошибка'}</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                document.getElementById('bot-status').innerHTML = botHtml;
+                
+                // Обновление раздела статуса базы данных
+                const dbInfo = data.components.database || {};
+                let dbStatus = dbInfo.status === 'healthy' ? 'bg-success' : 'bg-danger';
+                let dbStatusText = dbInfo.status === 'healthy' ? 'В порядке' : 'Ошибка';
+                
+                let dbHtml = `
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="p-3 border-start border-4 ${dbStatus} rounded">
+                                <h6>Статус:</h6>
+                                <p class="mb-0 fs-5">
+                                    <span class="badge ${dbStatus}">${dbStatusText}</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                if (dbInfo.error) {
+                    dbHtml += `
+                        <div class="mt-3">
+                            <div class="p-3 border rounded bg-danger text-white">
+                                <h6>Ошибка:</h6>
+                                <p class="mb-0">${dbInfo.error}</p>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                if (data.heartbeat && data.heartbeat.database) {
+                    const dbHeartbeat = data.heartbeat.database;
+                    dbHtml += `
+                        <div class="mt-3">
+                            <div class="p-3 border rounded">
+                                <h6>Последняя активность:</h6>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Проверка состояния:
+                                        <span>${formatDateTime(dbHeartbeat.last_check)}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Статус:
+                                        <span class="badge ${dbHeartbeat.status === 'ok' ? 'bg-success' : 'bg-danger'}">${dbHeartbeat.status === 'ok' ? 'В порядке' : 'Ошибка'}</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                document.getElementById('database-status').innerHTML = dbHtml;
+                
+                // Обновление раздела статистики
+                const statsInfo = data.components.stats || {};
+                let statsHtml = `
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="p-3 border-start border-4 border-primary rounded">
+                                <h6>Подписчики:</h6>
+                                <p class="mb-0 fs-4">${statsInfo.subscribers || 0}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 border-start border-4 border-info rounded">
+                                <h6>Источники новостей:</h6>
+                                <p class="mb-0 fs-4">${statsInfo.active_feeds || 0}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 border-start border-4 border-success rounded">
+                                <h6>Новости в кэше:</h6>
+                                <p class="mb-0 fs-4">${statsInfo.news_items || 0}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 border-start border-4 border-warning rounded">
+                                <h6>Последнее обновление новостей:</h6>
+                                <p class="mb-0 fs-6">${formatDateTime(statsInfo.latest_news_time)}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('stats-status').innerHTML = statsHtml;
+                
+                // Получение списка последних логов
+                fetch('/api/get_log_files?log_type=all')
                     .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert(`Мониторинг успешно ${action === 'start' ? 'запущен' : 'остановлен'}.`);
-                            setTimeout(updateMonitoringData, 2000);
+                    .then(logData => {
+                        if (logData.success && logData.files.length > 0) {
+                            let logsHtml = `
+                                <div class="row">
+                                    <div class="col">
+                                        <h6>Последние лог-файлы:</h6>
+                                        <ul class="list-group">
+                            `;
+                            
+                            // Показываем только первые 5 файлов
+                            const filesToShow = logData.files.slice(0, 5);
+                            filesToShow.forEach(file => {
+                                logsHtml += `
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>${file}</span>
+                                        <a href="/logs?log_file=${file}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> Просмотреть
+                                        </a>
+                                    </li>
+                                `;
+                            });
+                            
+                            logsHtml += `
+                                        </ul>
+                                    </div>
+                                </div>
+                            `;
+                            document.getElementById('logs-section').innerHTML = logsHtml;
                         } else {
-                            alert(`Ошибка: ${data.error}`);
+                            document.getElementById('logs-section').innerHTML = `
+                                <div class="alert alert-info">
+                                    Лог-файлы не найдены.
+                                </div>
+                            `;
                         }
                     })
                     .catch(error => {
-                        alert(`Ошибка: ${error.message}`);
+                        document.getElementById('logs-section').innerHTML = `
+                            <div class="alert alert-danger">
+                                Ошибка при загрузке логов: ${error.message}
+                            </div>
+                        `;
                     });
+            })
+            .catch(error => {
+                console.error('Ошибка при получении статуса системы:', error);
+                document.getElementById('system-status').innerHTML = `
+                    <div class="alert alert-danger">
+                        Ошибка при загрузке данных: ${error.message}
+                    </div>
+                `;
+                document.getElementById('bot-status').innerHTML = `
+                    <div class="alert alert-danger">
+                        Ошибка при загрузке данных: ${error.message}
+                    </div>
+                `;
+                document.getElementById('database-status').innerHTML = `
+                    <div class="alert alert-danger">
+                        Ошибка при загрузке данных: ${error.message}
+                    </div>
+                `;
+                document.getElementById('stats-status').innerHTML = `
+                    <div class="alert alert-danger">
+                        Ошибка при загрузке данных: ${error.message}
+                    </div>
+                `;
+                document.getElementById('logs-section').innerHTML = `
+                    <div class="alert alert-danger">
+                        Ошибка при загрузке данных: ${error.message}
+                    </div>
+                `;
             });
+    }
+
+    // Обработчики кнопок управления сервисами
+    document.getElementById('restart-web').addEventListener('click', function() {
+        if (confirm('Вы уверены, что хотите перезапустить веб-сервер?')) {
+            fetch('/api/restart/web', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Команда на перезапуск веб-сервера отправлена');
+                } else {
+                    alert('Ошибка: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Ошибка: ' + error.message);
+            });
+        }
+    });
+
+    document.getElementById('restart-bot').addEventListener('click', function() {
+        if (confirm('Вы уверены, что хотите перезапустить Telegram бота?')) {
+            fetch('/api/restart/bot', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Команда на перезапуск Telegram бота отправлена');
+                } else {
+                    alert('Ошибка: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Ошибка: ' + error.message);
+            });
+        }
+    });
+
+    document.getElementById('start-monitor').addEventListener('click', function() {
+        fetch('/api/start/monitor', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Мониторинг запущен');
+            } else {
+                alert('Ошибка: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Ошибка: ' + error.message);
         });
     });
+
+    document.getElementById('stop-monitor').addEventListener('click', function() {
+        if (confirm('Вы уверены, что хотите остановить мониторинг?')) {
+            fetch('/api/stop/monitor', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Мониторинг остановлен');
+                } else {
+                    alert('Ошибка: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Ошибка: ' + error.message);
+            });
+        }
+    });
+
+    // Запуск обновления статуса при загрузке страницы
+    fetchSystemStatus();
+    
+    // Автоматическое обновление статуса каждые 10 секунд
+    setInterval(fetchSystemStatus, 10000);
 </script>
 {% endblock %}

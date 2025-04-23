@@ -4,6 +4,7 @@ import glob
 import time
 import psutil
 import zipfile
+import logging
 import subprocess
 from datetime import datetime, timedelta, time as datetime_time
 from pathlib import Path
