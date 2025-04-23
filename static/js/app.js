@@ -51,25 +51,35 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Live time update in the header
-    const timeDisplay = document.getElementById('currentTime');
-    if (timeDisplay) {
-        function updateTime() {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            timeDisplay.innerHTML = '<i class="far fa-clock"></i> ' + timeString;
-        }
-        
-        // Update time every second
-        updateTime();
-        setInterval(updateTime, 1000);
-    }
-    
-    // Static Moscow time display (no animation/updates)
+    // Moscow time live update with seconds
     const moscowTimeDisplay = document.getElementById('moscowTime');
     if (moscowTimeDisplay) {
-        // We'll keep the server-provided time without updates
-        // This ensures the time is static and doesn't change/animate
+        function updateMoscowTime() {
+            // Moscow time zone offset is UTC+3
+            const now = new Date();
+            // Calculate Moscow time by adding the difference between local time zone and Moscow
+            const moscowOffset = 3 * 60; // Moscow UTC+3 in minutes
+            const localOffset = -now.getTimezoneOffset(); // Local offset in minutes
+            const offsetDiff = moscowOffset - localOffset; // Difference in minutes
+            
+            // Create Moscow time by adding the difference
+            const moscowTime = new Date(now.getTime() + offsetDiff * 60000);
+            
+            // Format the time: HH:MM:SS DD.MM.YYYY
+            const hours = moscowTime.getHours().toString().padStart(2, '0');
+            const minutes = moscowTime.getMinutes().toString().padStart(2, '0');
+            const seconds = moscowTime.getSeconds().toString().padStart(2, '0');
+            const day = moscowTime.getDate().toString().padStart(2, '0');
+            const month = (moscowTime.getMonth() + 1).toString().padStart(2, '0');
+            const year = moscowTime.getFullYear();
+            
+            const timeString = `${hours}:${minutes}:${seconds} ${day}.${month}.${year}`;
+            moscowTimeDisplay.textContent = timeString;
+        }
+        
+        // Update Moscow time every second
+        updateMoscowTime();
+        setInterval(updateMoscowTime, 1000);
     }
     
     // Test token button (without animation)
