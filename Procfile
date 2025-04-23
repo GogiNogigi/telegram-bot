@@ -1,1 +1,1 @@
-web: ./entrypoint.sh
+web: bash -c "chmod +x entrypoint.sh && ./entrypoint.sh"
