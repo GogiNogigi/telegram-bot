@@ -1,0 +1,42 @@
+{
+  "system": {
+    "status": "healthy",
+    "last_check": "2025-04-23T09:03:22.471780",
+    "details": {
+      "web_status": "healthy",
+      "bot_status": "healthy",
+      "last_check": "2025-04-23T09:03:22.471685"
+    }
+  },
+  "processes": {
+    "status": "healthy",
+    "last_check": "2025-04-23T09:03:21.250826",
+    "details": {
+      "web_running": true,
+      "bot_running": true
+    }
+  },
+  "web": {
+    "status": "healthy",
+    "last_check": "2025-04-23T09:03:21.716787",
+    "details": {
+      "status_code": 200,
+      "response_time": 0.461483,
+      "components": {},
+      "stats": {
+        "active_feeds": 6,
+        "latest_news_time": "2025-04-23T11:44:44.876476",
+        "news_items": 15,
+        "subscribers": 3
+      }
+    }
+  },
+  "telegram_bot": {
+    "status": "healthy",
+    "last_check": "2025-04-23T09:03:22.470986",
+    "details": {
+      "username": "AnapaProBot",
+      "response_time": 0.360126
+    }
+  }
+}
