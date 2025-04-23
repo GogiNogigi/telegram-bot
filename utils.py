@@ -224,6 +224,22 @@ def format_news_message(news_items: List[Dict[str, Any]]) -> str:
     
     all_parts = []
     
+    # Добавляем заголовок с текущим временем по Москве
+    try:
+        # Если доступен pytz, используем его для получения московского времени
+        import pytz
+        from datetime import timedelta
+        moscow_tz = pytz.timezone('Europe/Moscow')
+        now = datetime.now(pytz.UTC).astimezone(moscow_tz)
+        time_string = f"{now.strftime('%d.%m.%Y %H:%M')} (MSK)"
+    except ImportError:
+        # Иначе считаем вручную UTC+3
+        from datetime import timedelta
+        now = datetime.now() + timedelta(hours=3)
+        time_string = f"{now.strftime('%d.%m.%Y %H:%M')} (по Москве)"
+    
+    all_parts.append(f"📰 <b>НОВОСТИ НА {time_string}</b>")
+    
     # Форматируем каждую группу новостей
     for source, items in news_by_source.items():
         # Заголовок источника
