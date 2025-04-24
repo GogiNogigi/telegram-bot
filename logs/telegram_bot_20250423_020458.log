@@ -1,0 +1,27 @@
+2025-04-23 02:04:58,065 - __main__ - INFO - === ЗАПУСК TELEGRAM БОТА ===
+2025-04-23 02:04:58,065 - __main__ - INFO - Логи сохраняются в файл: logs/telegram_bot_20250423_020458.log
+2025-04-23 02:04:58,065 - __main__ - INFO - Текущее системное время: 2025-04-23 02:04:58
+2025-04-23 02:05:01,962 - __main__ - INFO - Запуск основной функции Telegram бота...
+2025-04-23 02:05:01,975 - __main__ - INFO - Московское время (из функции): 2025-04-23 05:05:01
+2025-04-23 02:05:01,975 - __main__ - INFO - UTC: 2025-04-23 02:05:01
+2025-04-23 02:05:01,975 - __main__ - INFO - Москва (расчет): 2025-04-23 05:05:01
+2025-04-23 02:05:02,171 - bot - INFO - Scheduled send times (Moscow): 08:00, 12:00, 16:00, 20:00
+2025-04-23 02:05:02,171 - bot - INFO - Send time 1: 08:00 - hour=8, minute=0
+2025-04-23 02:05:02,171 - bot - INFO - Send time 2: 12:00 - hour=12, minute=0
+2025-04-23 02:05:02,171 - bot - INFO - Send time 3: 16:00 - hour=16, minute=0
+2025-04-23 02:05:02,172 - bot - INFO - Send time 4: 20:00 - hour=20, minute=0
+2025-04-23 02:05:02,214 - __main__ - INFO - Настроенные времена рассылки: 08:00, 12:00, 16:00, 20:00
+2025-04-23 02:05:02,216 - bot - INFO - Scheduler check - current Moscow time: 05:05:02
+2025-04-23 02:05:02,393 - bot - INFO - Scheduled send times (Moscow): 08:00, 12:00, 16:00, 20:00
+2025-04-23 02:05:02,393 - bot - INFO - Send time 1: 08:00 - hour=8, minute=0
+2025-04-23 02:05:02,393 - bot - INFO - Send time 2: 12:00 - hour=12, minute=0
+2025-04-23 02:05:02,393 - bot - INFO - Send time 3: 16:00 - hour=16, minute=0
+2025-04-23 02:05:02,394 - bot - INFO - Send time 4: 20:00 - hour=20, minute=0
+2025-04-23 02:05:02,436 - bot - INFO - === SCHEDULER INITIALIZED ===
+2025-04-23 02:05:02,437 - bot - INFO - Current Moscow time: 2025-04-23 05:05:02
+2025-04-23 02:05:02,437 - bot - INFO - Configured send times: 08:00, 12:00, 16:00, 20:00
+2025-04-23 02:05:02,437 - bot - INFO - Next check will be at xx:xx:00 (checking every minute)
+2025-04-23 02:05:02,437 - bot - INFO - ===============================
+2025-04-23 02:05:02,438 - bot - INFO - Current Moscow time: 2025-04-23 05:05:02, Send times: 08:00, 12:00, 16:00, 20:00
+2025-04-23 02:05:02,800 - bot - INFO - Bot commands have been set successfully
+2025-04-23 02:05:02,802 - aiogram.dispatcher - INFO - Start polling

@@ -41,8 +41,12 @@ mode = "sequential"
 author = 41830795
 
 [[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python run_telegram_bot.py"
+task = "workflow.run"
+args = "Start Telegram Bot"
+
+[[ports]]
+localPort = 80
+externalPort = 3000
 
 [[ports]]
 localPort = 5000

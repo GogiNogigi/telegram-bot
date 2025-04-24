@@ -1,0 +1,68 @@
+2025-04-23 01:46:25,618 - __main__ - INFO - === ЗАПУСК TELEGRAM БОТА ===
+2025-04-23 01:46:25,618 - __main__ - INFO - Логи сохраняются в файл: logs/telegram_bot_20250423_014625.log
+2025-04-23 01:46:25,619 - __main__ - INFO - Текущее системное время: 2025-04-23 01:46:25
+2025-04-23 01:46:29,961 - __main__ - INFO - Запуск основной функции Telegram бота...
+2025-04-23 01:46:29,974 - __main__ - INFO - Московское время (из функции): 2025-04-23 04:46:29
+2025-04-23 01:46:29,974 - __main__ - INFO - UTC: 2025-04-23 01:46:29
+2025-04-23 01:46:29,974 - __main__ - INFO - Москва (расчет): 2025-04-23 04:46:29
+2025-04-23 01:46:30,150 - bot - INFO - Scheduled send times (Moscow): 04:44, 18:00, 12:00, 04:20
+2025-04-23 01:46:30,150 - bot - INFO - Send time 1: 04:44 - hour=4, minute=44
+2025-04-23 01:46:30,150 - bot - INFO - Send time 2: 18:00 - hour=18, minute=0
+2025-04-23 01:46:30,150 - bot - INFO - Send time 3: 12:00 - hour=12, minute=0
+2025-04-23 01:46:30,150 - bot - INFO - Send time 4: 04:20 - hour=4, minute=20
+2025-04-23 01:46:30,194 - __main__ - INFO - Настроенные времена рассылки: 04:44, 18:00, 12:00, 04:20
+2025-04-23 01:46:30,194 - __main__ - INFO - ВНИМАНИЕ: Приближается время отправки 04:44, осталось 2 мин.
+2025-04-23 01:46:30,196 - bot - INFO - Scheduler check - current Moscow time: 04:46:30
+2025-04-23 01:46:30,372 - bot - INFO - Scheduled send times (Moscow): 04:44, 18:00, 12:00, 04:20
+2025-04-23 01:46:30,372 - bot - INFO - Send time 1: 04:44 - hour=4, minute=44
+2025-04-23 01:46:30,372 - bot - INFO - Send time 2: 18:00 - hour=18, minute=0
+2025-04-23 01:46:30,372 - bot - INFO - Send time 3: 12:00 - hour=12, minute=0
+2025-04-23 01:46:30,372 - bot - INFO - Send time 4: 04:20 - hour=4, minute=20
+2025-04-23 01:46:30,415 - bot - INFO - === SCHEDULER INITIALIZED ===
+2025-04-23 01:46:30,416 - bot - INFO - Current Moscow time: 2025-04-23 04:46:30
+2025-04-23 01:46:30,416 - bot - INFO - Configured send times: 04:44, 18:00, 12:00, 04:20
+2025-04-23 01:46:30,416 - bot - INFO - Next check will be at xx:xx:00 (checking every minute)
+2025-04-23 01:46:30,416 - bot - INFO - ===============================
+2025-04-23 01:46:30,416 - bot - INFO - Checking time: current=4:46 (286 min), target=4:44 (284 min), diff=2 min
+2025-04-23 01:46:30,416 - bot - INFO - Approaching send time: current=04:46, target=04:44, diff=2 minutes
+2025-04-23 01:46:30,768 - bot - INFO - Bot commands have been set successfully
+2025-04-23 01:46:30,769 - aiogram.dispatcher - INFO - Start polling
+2025-04-23 01:46:30,884 - aiogram.dispatcher - INFO - Run polling for bot @AnapaProBot id=7849996561 - 'Новости Анапа Pro'
+2025-04-23 01:47:30,199 - __main__ - INFO - Московское время (из функции): 2025-04-23 04:47:30
+2025-04-23 01:47:30,199 - __main__ - INFO - UTC: 2025-04-23 01:47:30
+2025-04-23 01:47:30,199 - __main__ - INFO - Москва (расчет): 2025-04-23 04:47:30
+2025-04-23 01:47:30,374 - bot - INFO - Scheduled send times (Moscow): 04:44, 18:00, 12:00, 04:20
+2025-04-23 01:47:30,374 - bot - INFO - Send time 1: 04:44 - hour=4, minute=44
+2025-04-23 01:47:30,374 - bot - INFO - Send time 2: 18:00 - hour=18, minute=0
+2025-04-23 01:47:30,375 - bot - INFO - Send time 3: 12:00 - hour=12, minute=0
+2025-04-23 01:47:30,375 - bot - INFO - Send time 4: 04:20 - hour=4, minute=20
+2025-04-23 01:47:30,418 - __main__ - INFO - Настроенные времена рассылки: 04:44, 18:00, 12:00, 04:20
+2025-04-23 01:47:30,418 - __main__ - INFO - ВНИМАНИЕ: Приближается время отправки 04:44, осталось 3 мин.
+2025-04-23 01:47:30,418 - bot - INFO - Scheduler check - current Moscow time: 04:47:30
+2025-04-23 01:47:30,591 - bot - INFO - Scheduled send times (Moscow): 04:44, 18:00, 12:00, 04:20
+2025-04-23 01:47:30,591 - bot - INFO - Send time 1: 04:44 - hour=4, minute=44
+2025-04-23 01:47:30,592 - bot - INFO - Send time 2: 18:00 - hour=18, minute=0
+2025-04-23 01:47:30,592 - bot - INFO - Send time 3: 12:00 - hour=12, minute=0
+2025-04-23 01:47:30,592 - bot - INFO - Send time 4: 04:20 - hour=4, minute=20
+2025-04-23 01:47:30,635 - bot - INFO - Checking time: current=4:47 (287 min), target=4:44 (284 min), diff=3 min
+2025-04-23 01:47:30,635 - bot - INFO - Approaching send time: current=04:47, target=04:44, diff=3 minutes
+2025-04-23 01:48:30,422 - __main__ - INFO - Московское время (из функции): 2025-04-23 04:48:30
+2025-04-23 01:48:30,422 - __main__ - INFO - UTC: 2025-04-23 01:48:30
+2025-04-23 01:48:30,422 - __main__ - INFO - Москва (расчет): 2025-04-23 04:48:30
+2025-04-23 01:48:30,598 - bot - INFO - Scheduled send times (Moscow): 04:44, 18:00, 12:00, 04:20
+2025-04-23 01:48:30,598 - bot - INFO - Send time 1: 04:44 - hour=4, minute=44
+2025-04-23 01:48:30,598 - bot - INFO - Send time 2: 18:00 - hour=18, minute=0
+2025-04-23 01:48:30,598 - bot - INFO - Send time 3: 12:00 - hour=12, minute=0
+2025-04-23 01:48:30,598 - bot - INFO - Send time 4: 04:20 - hour=4, minute=20
+2025-04-23 01:48:30,642 - __main__ - INFO - Настроенные времена рассылки: 04:44, 18:00, 12:00, 04:20
+2025-04-23 01:48:30,642 - __main__ - INFO - ВНИМАНИЕ: Приближается время отправки 04:44, осталось 4 мин.
+2025-04-23 01:48:30,642 - bot - INFO - Scheduler check - current Moscow time: 04:48:30
+2025-04-23 01:48:30,818 - bot - INFO - Scheduled send times (Moscow): 04:44, 18:00, 12:00, 04:20
+2025-04-23 01:48:30,818 - bot - INFO - Send time 1: 04:44 - hour=4, minute=44
+2025-04-23 01:48:30,818 - bot - INFO - Send time 2: 18:00 - hour=18, minute=0
+2025-04-23 01:48:30,819 - bot - INFO - Send time 3: 12:00 - hour=12, minute=0
+2025-04-23 01:48:30,819 - bot - INFO - Send time 4: 04:20 - hour=4, minute=20
+2025-04-23 01:48:30,862 - bot - INFO - Checking time: current=4:48 (288 min), target=4:44 (284 min), diff=4 min
+2025-04-23 01:49:11,186 - aiogram.dispatcher - WARNING - Received SIGTERM signal
+2025-04-23 01:49:11,187 - aiogram.dispatcher - INFO - Polling stopped for bot @AnapaProBot id=7849996561 - 'Новости Анапа Pro'
+2025-04-23 01:49:11,187 - aiogram.dispatcher - INFO - Polling stopped

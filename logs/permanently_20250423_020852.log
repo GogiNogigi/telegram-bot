@@ -1,0 +1,50 @@
+2025-04-23 02:08:52,500 - Permanent - INFO - ==================================================
+2025-04-23 02:08:52,501 - Permanent - INFO - ЗАПУСК ПРОЕКТА В РЕЖИМЕ ПОСТОЯННОЙ РАБОТЫ
+2025-04-23 02:08:52,501 - Permanent - INFO - ==================================================
+2025-04-23 02:08:52,501 - Permanent - INFO - Запуск веб-сервера Flask...
+2025-04-23 02:08:52,501 - Permanent - INFO - Команда: gunicorn --bind 0.0.0.0:5000 --workers 2 --timeout 120 main:app
+2025-04-23 02:08:52,502 - Permanent - INFO - Веб-сервер запущен с PID: 1303
+2025-04-23 02:08:54,504 - Permanent - INFO - Запуск Telegram бота...
+2025-04-23 02:08:54,504 - Permanent - INFO - Команда: python run_telegram_bot.py
+2025-04-23 02:08:54,505 - Permanent - INFO - Telegram бот запущен с PID: 1320
+2025-04-23 02:08:54,505 - Permanent - INFO - Все сервисы успешно запущены!
+2025-04-23 02:08:54,506 - Permanent - INFO - Система работает в режиме постоянной работы
+2025-04-23 02:08:54,657 - Permanent - INFO - [BOT] 2025-04-23 02:08:54,657 - __main__ - INFO - === ЗАПУСК TELEGRAM БОТА ===
+2025-04-23 02:08:54,657 - Permanent - INFO - [BOT] 2025-04-23 02:08:54,657 - __main__ - INFO - Логи сохраняются в файл: logs/telegram_bot_20250423_020854.log
+2025-04-23 02:08:54,657 - Permanent - INFO - [BOT] 2025-04-23 02:08:54,657 - __main__ - INFO - Текущее системное время: 2025-04-23 02:08:54
+2025-04-23 02:08:57,766 - Permanent - ERROR - [WEB] ERROR: [2025-04-23 02:08:52 +0000] [1303] [INFO] Starting gunicorn 23.0.0
+2025-04-23 02:08:57,768 - Permanent - ERROR - [WEB] ERROR: [2025-04-23 02:08:52 +0000] [1303] [ERROR] Connection in use: ('0.0.0.0', 5000)
+2025-04-23 02:08:57,768 - Permanent - ERROR - [WEB] ERROR: [2025-04-23 02:08:52 +0000] [1303] [ERROR] connection to ('0.0.0.0', 5000) failed: [Errno 98] Address already in use
+2025-04-23 02:08:57,768 - Permanent - ERROR - [WEB] ERROR: [2025-04-23 02:08:53 +0000] [1303] [ERROR] Connection in use: ('0.0.0.0', 5000)
+2025-04-23 02:08:57,768 - Permanent - ERROR - [WEB] ERROR: [2025-04-23 02:08:53 +0000] [1303] [ERROR] connection to ('0.0.0.0', 5000) failed: [Errno 98] Address already in use
+2025-04-23 02:08:57,769 - Permanent - ERROR - [WEB] ERROR: [2025-04-23 02:08:54 +0000] [1303] [ERROR] Connection in use: ('0.0.0.0', 5000)
+2025-04-23 02:08:57,769 - Permanent - ERROR - [WEB] ERROR: [2025-04-23 02:08:54 +0000] [1303] [ERROR] connection to ('0.0.0.0', 5000) failed: [Errno 98] Address already in use
+2025-04-23 02:08:57,769 - Permanent - ERROR - [WEB] ERROR: [2025-04-23 02:08:55 +0000] [1303] [ERROR] Connection in use: ('0.0.0.0', 5000)
+2025-04-23 02:08:57,769 - Permanent - ERROR - [WEB] ERROR: [2025-04-23 02:08:55 +0000] [1303] [ERROR] connection to ('0.0.0.0', 5000) failed: [Errno 98] Address already in use
+2025-04-23 02:08:57,769 - Permanent - ERROR - [WEB] ERROR: [2025-04-23 02:08:56 +0000] [1303] [ERROR] Connection in use: ('0.0.0.0', 5000)
+2025-04-23 02:08:57,769 - Permanent - ERROR - [WEB] ERROR: [2025-04-23 02:08:56 +0000] [1303] [ERROR] connection to ('0.0.0.0', 5000) failed: [Errno 98] Address already in use
+2025-04-23 02:08:57,770 - Permanent - ERROR - [WEB] ERROR: [2025-04-23 02:08:57 +0000] [1303] [ERROR] Can't connect to ('0.0.0.0', 5000)
+2025-04-23 02:08:59,546 - Permanent - INFO - [BOT] 2025-04-23 02:08:59,546 - __main__ - INFO - Запуск основной функции Telegram бота...
+2025-04-23 02:08:59,562 - Permanent - INFO - [BOT] 2025-04-23 02:08:59,561 - __main__ - INFO - Московское время (из функции): 2025-04-23 05:08:59
+2025-04-23 02:08:59,562 - Permanent - INFO - [BOT] 2025-04-23 02:08:59,562 - __main__ - INFO - UTC: 2025-04-23 02:08:59
+2025-04-23 02:08:59,563 - Permanent - INFO - [BOT] 2025-04-23 02:08:59,562 - __main__ - INFO - Москва (расчет): 2025-04-23 05:08:59
+2025-04-23 02:08:59,739 - Permanent - INFO - [BOT] 2025-04-23 02:08:59,739 - bot - INFO - Scheduled send times (Moscow): 08:00, 12:00, 16:00, 20:00
+2025-04-23 02:08:59,739 - Permanent - INFO - [BOT] 2025-04-23 02:08:59,739 - bot - INFO - Send time 1: 08:00 - hour=8, minute=0
+2025-04-23 02:08:59,739 - Permanent - INFO - [BOT] 2025-04-23 02:08:59,739 - bot - INFO - Send time 2: 12:00 - hour=12, minute=0
+2025-04-23 02:08:59,740 - Permanent - INFO - [BOT] 2025-04-23 02:08:59,740 - bot - INFO - Send time 3: 16:00 - hour=16, minute=0
+2025-04-23 02:08:59,740 - Permanent - INFO - [BOT] 2025-04-23 02:08:59,740 - bot - INFO - Send time 4: 20:00 - hour=20, minute=0
+2025-04-23 02:08:59,784 - Permanent - INFO - [BOT] 2025-04-23 02:08:59,783 - __main__ - INFO - Настроенные времена рассылки: 08:00, 12:00, 16:00, 20:00
+2025-04-23 02:08:59,786 - Permanent - INFO - [BOT] 2025-04-23 02:08:59,785 - bot - INFO - Scheduler check - current Moscow time: 05:08:59
+2025-04-23 02:08:59,957 - Permanent - INFO - [BOT] 2025-04-23 02:08:59,957 - bot - INFO - Scheduled send times (Moscow): 08:00, 12:00, 16:00, 20:00
+2025-04-23 02:08:59,958 - Permanent - INFO - [BOT] 2025-04-23 02:08:59,957 - bot - INFO - Send time 1: 08:00 - hour=8, minute=0
+2025-04-23 02:08:59,959 - Permanent - INFO - [BOT] 2025-04-23 02:08:59,958 - bot - INFO - Send time 2: 12:00 - hour=12, minute=0
+2025-04-23 02:08:59,959 - Permanent - INFO - [BOT] 2025-04-23 02:08:59,958 - bot - INFO - Send time 3: 16:00 - hour=16, minute=0
+2025-04-23 02:08:59,959 - Permanent - INFO - [BOT] 2025-04-23 02:08:59,958 - bot - INFO - Send time 4: 20:00 - hour=20, minute=0
+2025-04-23 02:09:00,000 - Permanent - INFO - [BOT] 2025-04-23 02:08:59,999 - bot - INFO - === SCHEDULER INITIALIZED ===
+2025-04-23 02:09:00,000 - Permanent - INFO - [BOT] 2025-04-23 02:09:00,000 - bot - INFO - Current Moscow time: 2025-04-23 05:08:59
+2025-04-23 02:09:00,000 - Permanent - INFO - [BOT] 2025-04-23 02:09:00,000 - bot - INFO - Configured send times: 08:00, 12:00, 16:00, 20:00
+2025-04-23 02:09:00,000 - Permanent - INFO - [BOT] 2025-04-23 02:09:00,000 - bot - INFO - Next check will be at xx:xx:00 (checking every minute)
+2025-04-23 02:09:00,000 - Permanent - INFO - [BOT] 2025-04-23 02:09:00,000 - bot - INFO - ===============================
+2025-04-23 02:09:00,372 - Permanent - INFO - [BOT] 2025-04-23 02:09:00,372 - bot - INFO - Bot commands have been set successfully
+2025-04-23 02:09:00,373 - Permanent - INFO - [BOT] 2025-04-23 02:09:00,373 - aiogram.dispatcher - INFO - Start polling
+2025-04-23 02:09:00,490 - Permanent - INFO - [BOT] 2025-04-23 02:09:00,490 - aiogram.dispatcher - INFO - Run polling for bot @AnapaProBot id=7849996561 - 'Новости Анапа Pro'

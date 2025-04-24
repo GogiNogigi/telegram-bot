@@ -1,0 +1,49 @@
+2025-04-23 09:43:50,839 - __main__ - INFO - === ЗАПУСК TELEGRAM БОТА ===
+2025-04-23 09:43:50,840 - __main__ - INFO - Логи сохраняются в файл: logs/telegram_bot_20250423_094350.log
+2025-04-23 09:43:50,840 - __main__ - INFO - Текущее системное время: 2025-04-23 09:43:50
+2025-04-23 09:43:58,698 - __main__ - INFO - Запуск основной функции Telegram бота...
+2025-04-23 09:43:58,939 - __main__ - INFO - Московское время (из функции): 2025-04-23 12:43:58
+2025-04-23 09:43:58,939 - __main__ - INFO - UTC: 2025-04-23 09:43:58
+2025-04-23 09:43:58,939 - __main__ - INFO - Москва (расчет): 2025-04-23 12:43:58
+2025-04-23 09:43:59,110 - bot - INFO - Scheduled send times (Moscow): 08:00, 12:00, 16:00, 20:00
+2025-04-23 09:43:59,110 - bot - INFO - Send time 1: 08:00 - hour=8, minute=0
+2025-04-23 09:43:59,110 - bot - INFO - Send time 2: 12:00 - hour=12, minute=0
+2025-04-23 09:43:59,110 - bot - INFO - Send time 3: 16:00 - hour=16, minute=0
+2025-04-23 09:43:59,111 - bot - INFO - Send time 4: 20:00 - hour=20, minute=0
+2025-04-23 09:43:59,152 - __main__ - INFO - Настроенные времена рассылки: 08:00, 12:00, 16:00, 20:00
+2025-04-23 09:43:59,153 - bot - INFO - Scheduler check - current Moscow time: 12:43:59
+2025-04-23 09:43:59,320 - bot - INFO - Scheduled send times (Moscow): 08:00, 12:00, 16:00, 20:00
+2025-04-23 09:43:59,320 - bot - INFO - Send time 1: 08:00 - hour=8, minute=0
+2025-04-23 09:43:59,320 - bot - INFO - Send time 2: 12:00 - hour=12, minute=0
+2025-04-23 09:43:59,320 - bot - INFO - Send time 3: 16:00 - hour=16, minute=0
+2025-04-23 09:43:59,320 - bot - INFO - Send time 4: 20:00 - hour=20, minute=0
+2025-04-23 09:43:59,362 - bot - INFO - === SCHEDULER INITIALIZED ===
+2025-04-23 09:43:59,362 - bot - INFO - Current Moscow time: 2025-04-23 12:43:59
+2025-04-23 09:43:59,362 - bot - INFO - Configured send times: 08:00, 12:00, 16:00, 20:00
+2025-04-23 09:43:59,362 - bot - INFO - Next check will be at xx:xx:00 (checking every minute)
+2025-04-23 09:43:59,362 - bot - INFO - ===============================
+2025-04-23 09:43:59,764 - bot - INFO - Bot commands have been set successfully
+2025-04-23 09:43:59,765 - aiogram.dispatcher - INFO - Start polling
+2025-04-23 09:43:59,885 - aiogram.dispatcher - INFO - Run polling for bot @AnapaProBot id=7849996561 - 'Новости Анапа Pro'
+2025-04-23 09:44:07,367 - utils - WARNING - No entries found in feed https://kuban24.tv/rss
+2025-04-23 09:44:13,889 - utils - WARNING - No entries found in feed https://kubnews.ru/rss/
+2025-04-23 09:44:15,099 - aiogram.event - INFO - Update id=776002101 is handled. Duration 15088 ms by bot id=7849996561
+2025-04-23 09:44:15,482 - aiogram.event - INFO - Update id=776002100 is handled. Duration 15471 ms by bot id=7849996561
+2025-04-23 09:44:45,215 - aiogram.event - INFO - Update id=776002102 is handled. Duration 951 ms by bot id=7849996561
+2025-04-23 09:44:56,520 - aiogram.event - INFO - Update id=776002103 is handled. Duration 953 ms by bot id=7849996561
+2025-04-23 09:44:59,155 - __main__ - INFO - Московское время (из функции): 2025-04-23 12:44:59
+2025-04-23 09:44:59,155 - __main__ - INFO - UTC: 2025-04-23 09:44:59
+2025-04-23 09:44:59,155 - __main__ - INFO - Москва (расчет): 2025-04-23 12:44:59
+2025-04-23 09:44:59,321 - bot - INFO - Scheduled send times (Moscow): 08:00, 12:00, 16:00, 20:00
+2025-04-23 09:44:59,321 - bot - INFO - Send time 1: 08:00 - hour=8, minute=0
+2025-04-23 09:44:59,321 - bot - INFO - Send time 2: 12:00 - hour=12, minute=0
+2025-04-23 09:44:59,321 - bot - INFO - Send time 3: 16:00 - hour=16, minute=0
+2025-04-23 09:44:59,321 - bot - INFO - Send time 4: 20:00 - hour=20, minute=0
+2025-04-23 09:44:59,363 - __main__ - INFO - Настроенные времена рассылки: 08:00, 12:00, 16:00, 20:00
+2025-04-23 09:44:59,363 - bot - INFO - Scheduler check - current Moscow time: 12:44:59
+2025-04-23 09:44:59,529 - bot - INFO - Scheduled send times (Moscow): 08:00, 12:00, 16:00, 20:00
+2025-04-23 09:44:59,529 - bot - INFO - Send time 1: 08:00 - hour=8, minute=0
+2025-04-23 09:44:59,529 - bot - INFO - Send time 2: 12:00 - hour=12, minute=0
+2025-04-23 09:44:59,529 - bot - INFO - Send time 3: 16:00 - hour=16, minute=0
+2025-04-23 09:44:59,529 - bot - INFO - Send time 4: 20:00 - hour=20, minute=0
+2025-04-23 09:45:01,087 - aiogram.event - INFO - Update id=776002104 is handled. Duration 862 ms by bot id=7849996561

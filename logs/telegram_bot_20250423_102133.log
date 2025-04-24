@@ -1,0 +1,31 @@
+2025-04-23 10:21:33,967 - __main__ - INFO - === ЗАПУСК TELEGRAM БОТА ===
+2025-04-23 10:21:33,968 - __main__ - INFO - Логи сохраняются в файл: logs/telegram_bot_20250423_102133.log
+2025-04-23 10:21:33,968 - __main__ - INFO - Текущее системное время: 2025-04-23 10:21:33
+2025-04-23 10:21:40,883 - __main__ - INFO - Запуск основной функции Telegram бота...
+2025-04-23 10:21:41,064 - __main__ - INFO - Московское время (из функции): 2025-04-23 13:21:41
+2025-04-23 10:21:41,065 - __main__ - INFO - UTC: 2025-04-23 10:21:40
+2025-04-23 10:21:41,065 - __main__ - INFO - Москва (расчет): 2025-04-23 13:21:40
+2025-04-23 10:21:41,231 - bot - INFO - Scheduled send times (Moscow): 08:00, 12:00, 16:00, 20:00
+2025-04-23 10:21:41,231 - bot - INFO - Send time 1: 08:00 - hour=8, minute=0
+2025-04-23 10:21:41,231 - bot - INFO - Send time 2: 12:00 - hour=12, minute=0
+2025-04-23 10:21:41,232 - bot - INFO - Send time 3: 16:00 - hour=16, minute=0
+2025-04-23 10:21:41,232 - bot - INFO - Send time 4: 20:00 - hour=20, minute=0
+2025-04-23 10:21:41,272 - __main__ - INFO - Настроенные времена рассылки: 08:00, 12:00, 16:00, 20:00
+2025-04-23 10:21:41,273 - bot - INFO - Scheduler check - current Moscow time: 13:21:41
+2025-04-23 10:21:41,435 - bot - INFO - Scheduled send times (Moscow): 08:00, 12:00, 16:00, 20:00
+2025-04-23 10:21:41,435 - bot - INFO - Send time 1: 08:00 - hour=8, minute=0
+2025-04-23 10:21:41,435 - bot - INFO - Send time 2: 12:00 - hour=12, minute=0
+2025-04-23 10:21:41,435 - bot - INFO - Send time 3: 16:00 - hour=16, minute=0
+2025-04-23 10:21:41,436 - bot - INFO - Send time 4: 20:00 - hour=20, minute=0
+2025-04-23 10:21:41,476 - bot - INFO - === SCHEDULER INITIALIZED ===
+2025-04-23 10:21:41,476 - bot - INFO - Current Moscow time: 2025-04-23 13:21:41
+2025-04-23 10:21:41,476 - bot - INFO - Configured send times: 08:00, 12:00, 16:00, 20:00
+2025-04-23 10:21:41,476 - bot - INFO - Next check will be at xx:xx:00 (checking every minute)
+2025-04-23 10:21:41,476 - bot - INFO - ===============================
+2025-04-23 10:21:41,893 - bot - INFO - Bot commands have been set successfully
+2025-04-23 10:21:41,894 - aiogram.dispatcher - INFO - Start polling
+2025-04-23 10:21:42,015 - aiogram.dispatcher - INFO - Run polling for bot @AnapaProBot id=7849996561 - 'Новости Анапа Pro'
+2025-04-23 10:21:49,732 - utils - WARNING - No entries found in feed https://kuban24.tv/rss
+2025-04-23 10:21:57,655 - utils - WARNING - No entries found in feed https://kubnews.ru/rss/
+2025-04-23 10:21:58,940 - aiogram.event - INFO - Update id=776002108 is handled. Duration 16802 ms by bot id=7849996561
+2025-04-23 10:21:59,553 - aiogram.event - INFO - Update id=776002109 is handled. Duration 17415 ms by bot id=7849996561
